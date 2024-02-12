@@ -1,6 +1,7 @@
 """Main module."""
 
 import os
+import ipyleaflet
 
 def replace_white_spaces(parent, replace = ''):
     """Remove any white space in the point cloud files. 
@@ -20,4 +21,28 @@ def replace_white_spaces(parent, replace = ''):
                 folders[i] = new_name
     else:
         print(f'Passing...')
+
+class Map(ipyleaflet.Map):
+    """Custom map class that inherits from ipyleaflet.Map.
+    """
+    def __init__(self, *args, **kwargs):
+
+        if "scroll_wheel_zoom" not in kwargs:
+            kwargs["scroll_wheel_zoom"] = True
+        super().__init__(*args, **kwargs)
+
+    def add_search_control(self, position = "topleft", **kwargs):
+        """Add a search control to the map.
+
+        Args:
+            position (str, optional): Position of the search control. Defaults to "topleft".
+
+        Returns:
+            _type_: SearchControl object.
+        """
+        if "url" not in kwargs:
+            kwargs["url"] = "https://nominatim.openstreetmap.org/search?format=json&q={s}"
+        search = ipyleaflet.SearchControl(position = position, **kwargs)
+        self.add_control(search)
+        return search
 
