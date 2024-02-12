@@ -9,9 +9,8 @@ def replace_white_spaces(parent, replace = ''):
         parent (_type_): Parent directory of the point cloud files.
         replace (str, optional): Character to replace the white space. Defaults to ''.
     """
-    # codespell:ignore ans
-    ans = input(f'Warning! About to replace whitespaces with "{replace}"s in {os.path.abspath(parent)} \n Press y to continue...')
-    if ans.lower() == 'y':
+    response = input(f'Warning! About to replace whitespaces with "{replace}"s in {os.path.abspath(parent)} \n Press y to continue...')
+    if response.lower() == 'y':
         for path, folders, files in os.walk(parent):
             for f in files:
                 os.rename(os.path.join(path, f), os.path.join(path, f.replace(' ', replace)))
