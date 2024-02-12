@@ -81,6 +81,6 @@ nav:
     - Report Issues: https://github.com/Surfix/snow-pc/issues
     - Examples:
         - examples/intro.ipynb
+        - examples/interactive_map.ipynb
     - API Reference:
           - snow_pc module: snow_pc.md
-          - common module: common.md
