@@ -1,1 +1,17 @@
 """Main module."""
+
+import os
+
+def replace_white_spaces(parent, replace = ''):
+    ans = input(f'Warning! About to replace whitespaces with "{replace}"s in {os.path.abspath(parent)} \n Press y to continue...')
+    if ans.lower() == 'y':
+        for path, folders, files in os.walk(parent):
+            for f in files:
+                os.rename(os.path.join(path, f), os.path.join(path, f.replace(' ', replace)))
+            for i in range(len(folders)):
+                new_name = folders[i].replace(' ', replace)
+                os.rename(os.path.join(path, folders[i]), os.path.join(path, new_name))
+                folders[i] = new_name
+    else:
+        print(f'Passing...')
+
