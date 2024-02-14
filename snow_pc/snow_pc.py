@@ -30,7 +30,18 @@ class Map(ipyleaflet.Map):
         if "scroll_wheel_zoom" not in kwargs:
             kwargs["scroll_wheel_zoom"] = True
         super().__init__(*args, **kwargs)
-        self.add_LayerControl()
+
+        if "layers_control" not in kwargs:
+            kwargs["layers_control"] = True
+
+        if kwargs["layers_control"]:
+            self.add_LayerControl()
+
+        if "fullscreen_control" not in kwargs:
+            kwargs["fullscreen_control"] = True
+
+        if kwargs["fullscreen_control"]:
+            self.add_fullscreen_control()            
 
     def add_search_control(self, position = "topleft", **kwargs):
         """Add a search control to the map.
@@ -59,3 +70,16 @@ class Map(ipyleaflet.Map):
         layer_control = ipyleaflet.LayersControl(position = position)
         self.add_control(layer_control)
         return layer_control
+    
+    def add_fullscreen_control(self, position = "topright"):
+        """Add a fullscreen control to the map.
+
+        Args:
+            position (str, optional): Position of the fullscreen control. Defaults to "topright".
+
+        Returns:
+            _type_: FullscreenControl object.
+        """
+        fullscreen = ipyleaflet.FullScreenControl(position = position)
+        self.add_control(fullscreen)
+        return fullscreen
