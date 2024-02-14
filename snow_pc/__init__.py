@@ -5,4 +5,4 @@ __email__ = 'adebisi.naheem@gmail.com'
 __version__ = '0.0.2'
 
 from .snow_pc import *
-from .prepare_pc import *
+# from .prepare_pc import *

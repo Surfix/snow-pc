@@ -30,6 +30,7 @@ class Map(ipyleaflet.Map):
         if "scroll_wheel_zoom" not in kwargs:
             kwargs["scroll_wheel_zoom"] = True
         super().__init__(*args, **kwargs)
+        self.add_LayerControl()
 
     def add_search_control(self, position = "topleft", **kwargs):
         """Add a search control to the map.
@@ -46,3 +47,15 @@ class Map(ipyleaflet.Map):
         self.add_control(search)
         return search
 
+    def add_LayerControl(self, position = "topright"):
+        """Add a layer control to the map.
+
+        Args:
+            position (str, optional): Position of the layer control. Defaults to "topright".
+
+        Returns:
+            _type_: LayerControl object.
+        """
+        layer_control = ipyleaflet.LayersControl(position = position)
+        self.add_control(layer_control)
+        return layer_control
