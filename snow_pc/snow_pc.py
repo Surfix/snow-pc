@@ -83,3 +83,84 @@ class Map(ipyleaflet.Map):
         fullscreen = ipyleaflet.FullScreenControl(position = position)
         self.add_control(fullscreen)
         return fullscreen
+    
+    def add_tile_layer(self, url, name, **kwargs):
+        """Add a tile layer to the map.
+
+        Args:
+            url (str): URL of the tile layer.
+
+        Returns:
+            _type_: TileLayer object.
+        """
+        tile_layer = ipyleaflet.TileLayer(url = url, name=name, **kwargs)
+        self.add_layer(tile_layer)
+        return tile_layer
+    
+    def add_basemap(self, basemap, **kwargs):
+        """Add a basemap to the map.
+
+        Args:
+            basemap (_type_): A string representing the basemap to add.
+
+        Raises:
+            ValueError: If the basemap is not recognized.
+        """
+        import xyzservices.providers as xyz
+        if basemap.lower() == "openstreetmap":
+            url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            self.add_tile_layer(url, name = basemap,**kwargs)
+        elif basemap.lower() == "stamen terrain":
+            url = "https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.png"
+            self.add_tile_layer(url, name = basemap,**kwargs)
+        elif basemap.lower() == "opentopomap":
+            url = "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+            self.add_tile_layer(url, name = basemap,**kwargs)
+        elif basemap.lower() == "satellite":
+            url = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            self.add_tile_layer(url, name = basemap,**kwargs)
+
+        else:
+            try:
+                basemap = eval(f"xyz.{basemap}")
+                url = basemap.build_url()
+                name = basemap["name"]
+                attribute = basemap["attribution"]
+                print(url, name)
+                self.add_tile_layer(url, name, attribution = attribute, **kwargs)
+            except:
+                raise ValueError(f"Basemap {basemap} not recognized.")
+
+    def add_geojson(self, data, name = "geojson", **kwargs):
+        """Add a GeoJSON layer to the map.
+
+        Args:
+            data (_type_): A GeoJSON object.
+
+        Returns:
+            _type_: GeoJSON object.
+        """
+
+        if isinstance(data, str):
+            import json
+            with open(data, 'r') as f:
+                data = json.load(f)
+        geojson = ipyleaflet.GeoJSON(data = data, name = name, **kwargs)
+        self.add_layer(geojson)
+        return geojson
+    
+    def add_shp(self, data, name = "shapefile", **kwargs):
+        """Add a shapefile to the map.
+
+        Args:
+            data (_type_): A shapefile object.
+
+        Returns:
+            _type_: GeoData object.
+        """
+        import geopandas as gpd
+        gdf = gpd.read_file(data)
+        geojson = gdf.__geo_interface__
+        self.add_geojson(geojson, name = name, **kwargs)
+        
+        
