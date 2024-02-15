@@ -1,26 +1,67 @@
 """Main module."""
 
 import os
+from os.path import abspath, basename, dirname, exists, isdir, join, expanduser
 import ipyleaflet
+import json
+import logging
+from glob import glob
 
-def replace_white_spaces(parent, replace = ''):
-    """Remove any white space in the point cloud files. 
+from snow_pc.prepare_pc import replace_white_spaces, las2laz, merge_laz_files
 
-    Args:
-        parent (_type_): Parent directory of the point cloud files.
-        replace (str, optional): Character to replace the white space. Defaults to ''.
+
+log = logging.getLogger(__name__)
+
+def prep_point_clouds(in_dir: str, replace: str = ''):
     """
-    response = input(f'Warning! About to replace whitespaces with "{replace}"s in {os.path.abspath(parent)} \n Press y to continue...')
-    if response.lower() == 'y':
-        for path, folders, files in os.walk(parent):
-            for f in files:
-                os.rename(os.path.join(path, f), os.path.join(path, f.replace(' ', replace)))
-            for i in range(len(folders)):
-                new_name = folders[i].replace(' ', replace)
-                os.rename(os.path.join(path, folders[i]), os.path.join(path, new_name))
-                folders[i] = new_name
-    else:
-        print(f'Passing...')
+    Prepares point clouds for further processing.
+
+    Parameters:
+    in_dir (str): in_dir directory of the point cloud files.
+    replace (str) [optional]: Character to replace the white space. [default = '']
+    las_extra_byte_format (bool) [optional]: If the point cloud files are in the extra byte format. [default = False]
+    out_fp (str) [optional]: Output filepath for the merged point cloud. [default = 'unaligned_merged.laz']
+    laz_prefix (str) [optional]: Prefix to append in case there are .laz files to avoid mosaicing [default: ""]
+    dem_fp (str) [optional]: Filepath to save DEM at. [default = './dem.tif']
+    cache_fp (str) [optional]: Filepath to aiohttp cache. [default = './cache/aiohttp_cache.sqlite']
+    """
+
+    # checks on directory and user update
+    assert isdir(in_dir), f'Provided: {in_dir} is not a directory. Provide directory with .laz files.'
+    log.info(f"Working in directory: {in_dir}")
+    print(f"Working in directory: {in_dir}")
+    os.chdir(in_dir)
+
+    # set up sub directories
+    ice_dir = join(in_dir, 'ice-road')
+    os.makedirs(ice_dir, exist_ok= True)
+    results_dir = join(ice_dir, 'results')
+    os.makedirs(results_dir, exist_ok= True)
+    json_dir =  join(ice_dir, 'jsons')
+    os.makedirs(json_dir, exist_ok= True)
+
+    # check for white spaces
+    if len([i for i in glob(join(in_dir, '*')) if ' ' in i]) > 0:
+        log.warning('White spaces found in file paths. Try and remove them?')
+        replace_white_spaces(in_dir, replace)
+
+    # Convert all LAS files to LAZ
+    # las2laz(in_dir)
+    
+    # mosaic
+    log.info("Starting to mosaic las files...")
+    # if las_extra_byte_format is True:
+    #     las_fps = glob(join(in_dir, '*.las'))
+    # else:
+    #     las_fps = glob(join(in_dir, '*.laz'))
+    # log.debug(f"Number of laz files: {len(las_fps)}")
+    mosaic_fp = join(results_dir, 'unfiltered_merge.laz')
+    merge_laz_files(in_dir, out_fp= mosaic_fp)
+    # mosaic_laz(in_dir,las_extra_byte_format, log, out_fp=mosaic_fp, laz_prefix=laz_prefix)
+
+    if not exists(mosaic_fp):
+        log.warning('No mosaic created')
+        return -1
 
 class Map(ipyleaflet.Map):
     """Custom map class that inherits from ipyleaflet.Map.
