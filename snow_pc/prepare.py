@@ -12,6 +12,7 @@ def replace_white_spaces(in_dir, replace = ''):
         in_dir (_type_): in_dir directory of the point cloud files.
         replace (str, optional): Character to replace the white space. Defaults to ''.
     """
+    assert isdir(in_dir), f'{in_dir} is not a directory'
     response = input(f'Warning! About to replace whitespaces with "{replace}"s in {os.path.abspath(in_dir)} \n Press y to continue...')
     if response.lower() == 'y':
         for path, folders, files in os.walk(in_dir):
@@ -26,6 +27,8 @@ def replace_white_spaces(in_dir, replace = ''):
 
 
 def las2laz(in_dir: str):
+
+    assert isdir(in_dir), f'{in_dir} is not a directory'
 
     # Get a list of all LAS files in the directory
     las_files = [file for file in os.listdir(in_dir) if file.endswith('.las')]
