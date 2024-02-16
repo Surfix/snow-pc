@@ -14,10 +14,11 @@ import subprocess
 from shapely.geometry import box
 from shapely.ops import transform
 from rasterio.enums import Resampling
+import geopandas as gpd
 
 
 from snow_pc.prepare import replace_white_spaces, las2laz, merge_laz_files
-from snow_pc.pipeline import create_json_pipeline
+from snow_pc.pipeline import dem1_pipeline, dem2_pipeline
 
 
 def download_dem(las_fp, dem_fp = 'dem.tif', cache_fp ='./cache/aiohttp_cache.sqlite'):
@@ -77,9 +78,9 @@ def prepare_pc(in_dir: str, replace: str = ''):
     os.chdir(in_dir)
 
     # set up sub directories
-    ice_dir = join(in_dir, 'snow-pc')
-    os.makedirs(ice_dir, exist_ok= True)
-    results_dir = join(ice_dir, 'results')
+    snowpc_dir = join(in_dir, 'snow-pc')
+    os.makedirs(snowpc_dir, exist_ok= True)
+    results_dir = join(snowpc_dir, 'results')
     os.makedirs(results_dir, exist_ok= True)
 
     #check and replace white spaces in file paths
@@ -163,7 +164,7 @@ def pc2uncorrectedDEM(laz_fp, dem= '', debug= False):
     print("Creating DTM Pipeline...")
     json_dir =  join(results_dir, 'jsons')
     os.makedirs(json_dir, exist_ok= True)
-    json_to_use = create_json_pipeline(in_fp = laz_fp, outlas = outlas, outtif = outtif, dem_fp = dem_fp, json_dir = json_dir)
+    json_to_use = dem1_pipeline(in_fp = laz_fp, outlas = outlas, outtif = outtif, dem_fp = dem_fp, json_dir = json_dir)
     # log.debug(f"JSON to use is {json_to_use}")
 
     print("Running DTM pipeline")
@@ -176,7 +177,7 @@ def pc2uncorrectedDEM(laz_fp, dem= '', debug= False):
 
     # DSM creation
     print("Creating Canopy Pipeline...")
-    json_to_use = create_json_pipeline(in_fp = laz_fp, outlas = canopy_laz, \
+    json_to_use = dem1_pipeline(in_fp = laz_fp, outlas = canopy_laz, \
         outtif = canopy_laz.replace('laz','tif'), dem_fp = dem_fp, json_dir = json_dir, canopy = True,\
         json_name='canopy')
     # log.debug(f"JSON to use is {json_to_use}")
@@ -199,6 +200,63 @@ def pc2uncorrectedDEM(laz_fp, dem= '', debug= False):
     # log.info(f"Completed! Run Time: {end_time - start_time}")
 
     return outtif, outlas, canopy_laz
+
+def dem_align(laz_fp, align_shp, buffer_meters = 3.0, dem_is_geoid = False):
+    
+    #get the directory of the file
+    results_dir = dirname(laz_fp)
+    json_dir =  join(results_dir, 'jsons')
+    os.makedirs(json_dir, exist_ok= True)
+
+    print('Starting ASP Alignment...\n Loading in shapefile')
+    gdf = gpd.read_file(align_shp)
+    #check that gdf is in UTM
+    assert gdf.crs.is_projected, f'Provided shapefile is not in a projected coordinate system. Please provide a shapefile in a projected coordinate system.'
+    #check that gdf crs is same as las crs
+    with laspy.open(laz_fp) as las:
+        hdr = las.header
+        crs = hdr.parse_crs()
+    assert gdf.crs == crs, f'Provided shapefile is not in the same coordinate system as the las file. Please provide a shapefile in the same coordinate system as the las file.'
+
+    # Create a new attribute to be used for PDAL clip/overlay
+    gdf['CLS'] = 42
+
+    # Save buffered shpfile to directory we just made
+    buff_shp = join(results_dir, 'buffered_area.shp')
+    gdf.to_file(buff_shp)
+
+    #make a subdirectory for the products in the results directory
+    products_dir = join(results_dir, 'products')
+    os.makedirs(products_dir, exist_ok= True)
+
+    # create a file path for the aligned snow and canopy products
+    snow_final_tif = join(products_dir, 'snow')
+    canopy_final_tif = join(products_dir, 'canopy')
+
+    if exists(snow_final_tif + '.tif') and exists(canopy_final_tif + '.tif'):
+        while True:
+            ans = input("Aligned tif already exists. Enter y to overwrite and n to use existing:")
+            if ans.lower() == 'n':
+                return snow_final_tif + '.tif', canopy_final_tif+ '.tif'
+            elif ans.lower() == 'y':
+                break
+            
+    snow_tif = clip_align(input_laz=input_laz, buff_shp=buff_shp, result_dir=result_dir,\
+        json_dir=json_dir, log = log, dem_is_geoid=dem_is_geoid, asp_dir=asp_dir,\
+        final_tif = snow_final_tif, is_canopy=False, las_extra_byte_format=las_extra_byte_format)
+
+    canopy_tif = clip_align(input_laz=canopy_laz, buff_shp=buff_shp, result_dir=result_dir,\
+        json_dir=json_dir, log = log, dem_is_geoid=dem_is_geoid, asp_dir=asp_dir,\
+        final_tif = canopy_final_tif, is_canopy=True, las_extra_byte_format=las_extra_byte_format)
+
+    # For some reason this is returning 1 when a product IS created..
+    if not exists(snow_tif):
+       print(f'Can not find {snow_tif}')
+       raise Exception('No final product created')
+
+    return snow_tif, canopy_tif
+
+
 
 def laz2uncorectedDEM(in_dir, dem_fp = '', debug = False):
     """Converts laz files to uncorrected DEM.

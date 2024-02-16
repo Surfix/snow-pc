@@ -2,7 +2,7 @@ import os
 from os.path import abspath, exists, join
 import json
 
-def create_json_pipeline(in_fp, outlas, outtif, dem_fp, json_name = 'las2unaligned', json_dir = './jsons', canopy = False):
+def dem1_pipeline(in_fp, outlas, outtif, dem_fp, json_name = 'las2unaligned', json_dir = './jsons', canopy = False):
     """
     Creates JSON Pipeline for standard las point cloud to DTM.
     Filters include: dem, elm, outlier
@@ -27,6 +27,7 @@ def create_json_pipeline(in_fp, outlas, outtif, dem_fp, json_name = 'las2unalign
     assert exists(dem_fp), f'DEM filepath {in_fp} does not exist'
 
     # good docs on types of filters used: https://pdal.io/stages/filters.html#ground-unclassified
+    # check this for improvement: https://pdal.io/en/2.6.0/tutorial/ground-filters.html
     # Reads in mosaiced las file
     reader = {"type": "readers.las", "filename": in_fp
     }
@@ -94,3 +95,9 @@ def create_json_pipeline(in_fp, outlas, outtif, dem_fp, json_name = 'las2unalign
     # add logging message for success #
 
     return json_to_use
+
+def dem2_pipeline(in_fp, outlas, outtif, dem_fp, json_name = 'las2unaligned', json_dir = './jsons', canopy = False):
+    # check this for improvement: https://pdal.io/en/2.6.0/tutorial/ground-filters.html    
+
+def clip_laz(input_laz, shape_file):
+    pass
