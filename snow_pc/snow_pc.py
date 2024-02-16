@@ -3,13 +3,57 @@
 import os
 from os.path import abspath, basename, dirname, exists, isdir, join, expanduser
 import ipyleaflet
+import shutil
 import json
 import logging
 from glob import glob
+import pyproj
+import laspy
+import py3dep
+import subprocess
+from shapely.geometry import box
+from shapely.ops import transform
+from rasterio.enums import Resampling
+
 
 from snow_pc.prepare import replace_white_spaces, las2laz, merge_laz_files
+from snow_pc.pipeline import create_json_pipeline
 
 
+def download_dem(las_fp, dem_fp = 'dem.tif', cache_fp ='./cache/aiohttp_cache.sqlite'):
+    """
+    Reads the crs and bounds of a las file and downloads a DEM from py3dep
+    Must be in the CONUS.
+
+    Parameters:
+    las_fp (str): filepath to las file to get bounds and crs
+    dem_fp (str) [optional]: filepath to save DEM at. [default = './dem.tif']
+
+    Returns:
+    crs (pyproj CRS): CRS object from las header
+    project (shapely transform): shapely transform used in conversion
+    """
+    # read crs of las file
+    with laspy.open(las_fp) as las:
+        hdr = las.header
+        crs = hdr.parse_crs()
+    # log.debug(f"CRS used is {crs}")
+    # create transform from wgs84 to las crs
+    wgs84 = pyproj.CRS('EPSG:4326')
+    project = pyproj.Transformer.from_crs(crs, wgs84 , always_xy=True).transform
+    # calculate bounds of las file in wgs84
+    utm_bounds = box(hdr.mins[0], hdr.mins[1], hdr.maxs[0], hdr.maxs[1])
+    wgs84_bounds = transform(project, utm_bounds)
+    # download dem inside bounds
+    os.environ["HYRIVER_CACHE_NAME"] = cache_fp
+    
+    dem_wgs = py3dep.get_map('DEM', wgs84_bounds, resolution=1, crs='EPSG:4326')
+    # log.debug(f"DEM bounds: {dem_wgs.rio.bounds()}. Size: {dem_wgs.size}")
+    # reproject to las crs and save
+    dem_utm = dem_wgs.rio.reproject(crs, resampling = Resampling.cubic_spline)
+    dem_utm.rio.to_raster(dem_fp)
+    # log.debug(f"Saved to {dem_fp}")
+    return dem_fp, crs, project
 
 def prepare_pc(in_dir: str, replace: str = ''):
     """Prepare point cloud data for processing.
@@ -37,8 +81,6 @@ def prepare_pc(in_dir: str, replace: str = ''):
     os.makedirs(ice_dir, exist_ok= True)
     results_dir = join(ice_dir, 'results')
     os.makedirs(results_dir, exist_ok= True)
-    json_dir =  join(ice_dir, 'jsons')
-    os.makedirs(json_dir, exist_ok=True)
 
     #check and replace white spaces in file paths
     for file in glob(join(in_dir, '*')):
@@ -61,6 +103,124 @@ def prepare_pc(in_dir: str, replace: str = ''):
         return mosaic_fp
     else:
         print(f"Error: Mosaic file not created")
+
+def pc2uncorrectedDEM(laz_fp, dem= '', debug= False):
+    """
+    Takes a input directory of laz files. Mosaics them, downloads DEM within their bounds,
+    builds JSON pipeline, and runs PDAL pipeline of filter, classifying and saving DTM.
+
+    Parameters:
+    laz_file (str): filepath to laz file to be run
+    debug (bool): lots of yakety yak or not?
+
+    Returns:
+    outtif (str): filepath to output DTM tiff
+    outlas (str): filepath to output DTM laz file
+    """
+
+    #checks that file exists
+    assert exists(laz_fp), f'Provided: {laz_fp} does not exist. Provide directory with .laz files.'
+    
+    #get the directory of the file
+    results_dir = dirname(laz_fp)
+
+    # # set up sub directories
+    # ice_dir = join(in_dir, 'ice-road')
+    # os.makedirs(ice_dir, exist_ok= True)
+    # results_dir = join(ice_dir, 'results')
+    # os.makedirs(results_dir, exist_ok= True)
+    # json_dir =  join(ice_dir, 'jsons')
+    # os.makedirs(json_dir, exist_ok= True)
+
+    # check for overwrite
+    outtif = join(results_dir, f'unaligned.tif')
+    outlas = join(results_dir, f'unaligned.laz')
+    canopy_laz = join(results_dir, f'_canopy_unaligned.laz')
+    if exists(outtif):
+        while True:
+            ans = input("Uncorrected tif already exists. Enter y to overwrite and n to use existing:")
+            if ans.lower() == 'n':
+                return outtif, outlas, canopy_laz
+            elif ans.lower() == 'y':
+                break
+
+    # Allowing the code to use user input DEM
+    dem_fp = join(results_dir, 'dem.tif')
+
+    if not dem:
+        print("Starting DEM download...")
+        _, crs, project = download_dem(laz_fp, dem_fp = dem_fp, cache_fp= join(results_dir, 'py3dep_cache', 'aiohttp_cache.sqlite'))
+        # log.debug(f"Downloaded dem to {dem_fp}")
+    else:
+        print("User DEM specified. Skipping DEM download...")
+        #copy the user specified dem to the results directory as dem_fp
+        shutil.copy(dem, dem_fp)
+    if not exists(join(results_dir, 'dem.tif')):
+        print('No DEM downloaded')
+        return -1
+    
+    # DTM creation
+    print("Creating DTM Pipeline...")
+    json_dir =  join(results_dir, 'jsons')
+    os.makedirs(json_dir, exist_ok= True)
+    json_to_use = create_json_pipeline(in_fp = laz_fp, outlas = outlas, outtif = outtif, dem_fp = dem_fp, json_dir = json_dir)
+    # log.debug(f"JSON to use is {json_to_use}")
+
+    print("Running DTM pipeline")
+    if debug == True:
+        pipeline_cmd = f'pdal pipeline -i {json_to_use} -v 8'
+    else:
+        pipeline_cmd = f'pdal pipeline -i {json_to_use}'
+    subprocess.run(pipeline_cmd, shell=True)
+    # cl_call(pipeline_cmd, log)
+
+    # DSM creation
+    print("Creating Canopy Pipeline...")
+    json_to_use = create_json_pipeline(in_fp = laz_fp, outlas = canopy_laz, \
+        outtif = canopy_laz.replace('laz','tif'), dem_fp = dem_fp, json_dir = json_dir, canopy = True,\
+        json_name='canopy')
+    # log.debug(f"JSON to use is {json_to_use}")
+    print("Running Canopy pipeline")
+    if debug == True:
+        pipeline_cmd = f'pdal pipeline -i {json_to_use} -v 8'
+    else:
+        pipeline_cmd = f'pdal pipeline -i {json_to_use}'
+    subprocess.run(pipeline_cmd, shell=True)
+
+    # log.info("Running Canopy pipeline")
+    # if debug:
+    #     pipeline_cmd = f'pdal pipeline -i {json_to_use} -v 8'
+    # else:
+    #     pipeline_cmd = f'pdal pipeline -i {json_to_use}'
+    # cl_call(pipeline_cmd, log)
+
+
+    # end_time = datetime.now()
+    # log.info(f"Completed! Run Time: {end_time - start_time}")
+
+    return outtif, outlas, canopy_laz
+
+def laz2uncorectedDEM(in_dir, dem_fp = '', debug = False):
+    """Converts laz files to uncorrected DEM.
+
+    Args:
+        in_dir (str): Path to the directory containing the point cloud files.
+        dem_fp (str, optional): Path to the DEM file. Defaults to ''.
+        debug (bool, optional): Debug mode. Defaults to False.
+
+    Returns:
+    outtif (str): filepath to output DTM tiff
+    outlas (str): filepath to output DTM laz file
+    """
+
+    # prepare point cloud
+    laz_fp = prepare_pc(in_dir)
+
+    # create uncorrected DEM
+    outtif, outlas, canopy_laz = pc2uncorrectedDEM(laz_fp, dem_fp, debug)
+
+    return outtif, outlas, canopy_laz
+
 
 class Map(ipyleaflet.Map):
     """Custom map class that inherits from ipyleaflet.Map.

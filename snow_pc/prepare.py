@@ -2,7 +2,7 @@ import logging
 import os
 import subprocess
 from glob import glob
-from os.path import abspath, basename, dirname, exists, isdir, join, expanduser
+from os.path import isdir, join
 
 
 def replace_white_spaces(in_dir, replace = ''):
