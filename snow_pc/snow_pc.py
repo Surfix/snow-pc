@@ -201,7 +201,7 @@ def pc2uncorrectedDEM(laz_fp, dem= '', debug= False):
 
     return outtif, outlas, canopy_laz
 
-def clip_align(input_laz, buff_shp, result_dir, json_dir, log, dem_is_geoid, asp_dir, final_tif, is_canopy=False, las_extra_byte_format=False):
+def clip_align(input_laz, buff_shp, result_dir, json_dir, dem_is_geoid, asp_dir, final_tif, is_canopy=False, las_extra_byte_format=False):
         
 
         # Have is_canopy flag to avoid running twice...
@@ -238,7 +238,7 @@ def clip_align(input_laz, buff_shp, result_dir, json_dir, log, dem_is_geoid, asp
             if not exists(clipped_pc):
                 raise Exception('Output point cloud not created')
 
-            log.info('Point cloud clipped to area')
+            print('Point cloud clipped to area')
 
         # Define paths for next if statement
         in_dem = join(result_dir, 'dem.tif')
@@ -247,7 +247,8 @@ def clip_align(input_laz, buff_shp, result_dir, json_dir, log, dem_is_geoid, asp
             # ASP needs NAVD88 conversion to be in NAD83 (not WGS84)
             nad83_dem = join(result_dir, 'demNAD_tmp.tif')
             gdal_func = join(asp_dir, 'gdalwarp')
-            cl_call(f'{gdal_func} -t_srs EPSG:26911 {in_dem} {nad83_dem}', log)
+
+            subprocess.run([gdal_func, '-t_srs', 'EPSG:26911', in_dem, nad83_dem])
             # Use ASP to convert from geoid to ellipsoid
             ellisoid_dem = join(result_dir, 'dem_wgs')
             geoid_func = join(asp_dir, 'dem_geoid')
@@ -310,7 +311,12 @@ def clip_align(input_laz, buff_shp, result_dir, json_dir, log, dem_is_geoid, asp
     
         return final_tif + '-DEM.tif'
 
-def dem_align(laz_fp, align_shp, buffer_meters = 3.0, dem_is_geoid = False):
+def dem_align(input_laz, 
+              canopy_laz, 
+              laz_fp, 
+              align_shp = 'transform_area/hwy_21/hwy_21_utm_edit_v2.shp', 
+              buffer_meters = 3.0, 
+              dem_is_geoid = False):
     
     #get the directory of the file
     results_dir = dirname(laz_fp)
@@ -326,6 +332,11 @@ def dem_align(laz_fp, align_shp, buffer_meters = 3.0, dem_is_geoid = False):
         hdr = las.header
         crs = hdr.parse_crs()
     assert gdf.crs == crs, f'Provided shapefile is not in the same coordinate system as the las file. Please provide a shapefile in the same coordinate system as the las file.'
+    
+    # Buffer geom based on user input. NOTE: we assume buffer_meters is the entire width. 
+    # So, must divide by 2 here to get the right distance from centerline.
+    print(f'Buffer width of {buffer_meters} m is used. This is {buffer_meters / 2} m from centerline.')
+    gdf['geometry'] = gdf.geometry.buffer(buffer_meters / 2)
 
     # Create a new attribute to be used for PDAL clip/overlay
     gdf['CLS'] = 42
@@ -350,13 +361,13 @@ def dem_align(laz_fp, align_shp, buffer_meters = 3.0, dem_is_geoid = False):
             elif ans.lower() == 'y':
                 break
 
-    snow_tif = clip_align(input_laz=input_laz, buff_shp=buff_shp, result_dir=result_dir,\
-        json_dir=json_dir, log = log, dem_is_geoid=dem_is_geoid, asp_dir=asp_dir,\
-        final_tif = snow_final_tif, is_canopy=False, las_extra_byte_format=las_extra_byte_format)
+    snow_tif = clip_align(input_laz=input_laz, buff_shp=buff_shp, result_dir=products_dir,\
+        json_dir=json_dir, dem_is_geoid=dem_is_geoid, asp_dir=asp_dir,\
+        final_tif = snow_final_tif, is_canopy=False)
 
-    canopy_tif = clip_align(input_laz=canopy_laz, buff_shp=buff_shp, result_dir=result_dir,\
-        json_dir=json_dir, log = log, dem_is_geoid=dem_is_geoid, asp_dir=asp_dir,\
-        final_tif = canopy_final_tif, is_canopy=True, las_extra_byte_format=las_extra_byte_format)
+    canopy_tif = clip_align(input_laz=canopy_laz, buff_shp=buff_shp, result_dir=products_dir,\
+        json_dir=json_dir, dem_is_geoid=dem_is_geoid, asp_dir=asp_dir,\
+        final_tif = canopy_final_tif, is_canopy=True)
 
     # For some reason this is returning 1 when a product IS created..
     if not exists(snow_tif):
