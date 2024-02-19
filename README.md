@@ -15,9 +15,9 @@
 ## Features
 
 -   TODO
+[] Add clip_pc to region
+[] GUIs
 [] Figure out which dtm pipeline is most optimal
 [] Implement separate dem pipeline for LiDAR and photogrammetry
 [] Add interactive map feature to allow users draw control surface for coregistration
 [] Implement coregistration using points
-[] Add clip_pc to region
-[] GUIs

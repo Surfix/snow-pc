@@ -80,6 +80,6 @@ nav:
     - Changelog: changelog.md
     - Report Issues: https://github.com/Surfix/snow-pc/issues
     - Examples:
-        - examples/snow_pc.ipynb
+        - examples/examples.ipynb
     - API Reference:
           - snow_pc module: snow_pc.md
