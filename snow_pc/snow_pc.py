@@ -139,10 +139,10 @@ def pc2uncorrectedDEM(laz_fp, dem= '', debug= False):
     canopy_laz = join(results_dir, f'_canopy_unaligned.laz')
     if exists(outtif):
         while True:
-            ans = input("Uncorrected tif already exists. Enter y to overwrite and n to use existing:")
-            if ans.lower() == 'n':
+            ans_ = input("Uncorrected tif already exists. Enter y to overwrite and n to use existing:")
+            if ans_.lower() == 'n':
                 return outtif, outlas, canopy_laz
-            elif ans.lower() == 'y':
+            elif ans_.lower() == 'y':
                 break
 
     # Allowing the code to use user input DEM
@@ -201,180 +201,180 @@ def pc2uncorrectedDEM(laz_fp, dem= '', debug= False):
 
     return outtif, outlas, canopy_laz
 
-def clip_align(input_laz, buff_shp, result_dir, json_dir, dem_is_geoid, asp_dir, final_tif, is_canopy=False, las_extra_byte_format=False):
+# def clip_align(input_laz, buff_shp, result_dir, json_dir, dem_is_geoid, asp_dir, final_tif, is_canopy=False, las_extra_byte_format=False):
         
 
-        # Have is_canopy flag to avoid running twice...
-        if is_canopy is False:     
-            # Clip clean_PC to the transform_area using PDAL
-            # input_laz = join(result_dir, basename(in_dir)+'_unaligned.laz')
-            clipped_pc = join(result_dir, 'clipped_PC.laz')
-            json_path = join(json_dir, 'clip_to_shp.json')
+#         # Have is_canopy flag to avoid running twice...
+#         if is_canopy is False:     
+#             # Clip clean_PC to the transform_area using PDAL
+#             # input_laz = join(result_dir, basename(in_dir)+'_unaligned.laz')
+#             clipped_pc = join(result_dir, 'clipped_PC.laz')
+#             json_path = join(json_dir, 'clip_to_shp.json')
 
-            # Create .json file for PDAL clip
-            json_pipeline = {
-                "pipeline": [
-                    input_laz,
-                    {
-                        "type":"filters.overlay",
-                        "dimension":"Classification",
-                        "datasource":buff_shp,
-                        "layer":"buffered_area",
-                        "column":"CLS"
-                    },
-                    {
-                        "type":"filters.range",
-                        "limits":"Classification[42:42]"
-                    },
-                    clipped_pc
-                ]
-            }
-            with open(json_path,'w') as outfile:
-                json.dump(json_pipeline, outfile, indent = 2)
+#             # Create .json file for PDAL clip
+#             json_pipeline = {
+#                 "pipeline": [
+#                     input_laz,
+#                     {
+#                         "type":"filters.overlay",
+#                         "dimension":"Classification",
+#                         "datasource":buff_shp,
+#                         "layer":"buffered_area",
+#                         "column":"CLS"
+#                     },
+#                     {
+#                         "type":"filters.range",
+#                         "limits":"Classification[42:42]"
+#                     },
+#                     clipped_pc
+#                 ]
+#             }
+#             with open(json_path,'w') as outfile:
+#                 json.dump(json_pipeline, outfile, indent = 2)
 
-            #cl_call(f'pdal pipeline {json_path}', log)               
+#             #cl_call(f'pdal pipeline {json_path}', log)               
 
-            # Check to see if output clipped point cloud was created
-            if not exists(clipped_pc):
-                raise Exception('Output point cloud not created')
+#             # Check to see if output clipped point cloud was created
+#             if not exists(clipped_pc):
+#                 raise Exception('Output point cloud not created')
 
-            print('Point cloud clipped to area')
+#             print('Point cloud clipped to area')
 
-        # Define paths for next if statement
-        in_dem = join(result_dir, 'dem.tif')
+#         # Define paths for next if statement
+#         in_dem = join(result_dir, 'dem.tif')
         
-        if dem_is_geoid is True:
-            # ASP needs NAVD88 conversion to be in NAD83 (not WGS84)
-            nad83_dem = join(result_dir, 'demNAD_tmp.tif')
-            gdal_func = join(asp_dir, 'gdalwarp')
+#         if dem_is_geoid is True:
+#             # ASP needs NAVD88 conversion to be in NAD83 (not WGS84)
+#             nad83_dem = join(result_dir, 'demNAD_tmp.tif')
+#             gdal_func = join(asp_dir, 'gdalwarp')
 
-            subprocess.run([gdal_func, '-t_srs', 'EPSG:26911', in_dem, nad83_dem])
-            # Use ASP to convert from geoid to ellipsoid
-            ellisoid_dem = join(result_dir, 'dem_wgs')
-            geoid_func = join(asp_dir, 'dem_geoid')
-            cl_call(f'{geoid_func} --nodata_value -9999 {nad83_dem} \
-                    --geoid NAVD88 --reverse-adjustment -o {ellisoid_dem}', log)
-            # Set it back to WGS84
-            ref_dem = join(result_dir, 'ellipsoid_DEM.tif')
-            cl_call(f'{gdal_func} -t_srs EPSG:32611 {ellisoid_dem}-adj.tif {ref_dem}', log)
+#             subprocess.run([gdal_func, '-t_srs', 'EPSG:26911', in_dem, nad83_dem])
+#             # Use ASP to convert from geoid to ellipsoid
+#             ellisoid_dem = join(result_dir, 'dem_wgs')
+#             geoid_func = join(asp_dir, 'dem_geoid')
+#             cl_call(f'{geoid_func} --nodata_value -9999 {nad83_dem} \
+#                     --geoid NAVD88 --reverse-adjustment -o {ellisoid_dem}', log)
+#             # Set it back to WGS84
+#             ref_dem = join(result_dir, 'ellipsoid_DEM.tif')
+#             cl_call(f'{gdal_func} -t_srs EPSG:32611 {ellisoid_dem}-adj.tif {ref_dem}', log)
 
-            # check for success
-            if not exists(ref_dem):
-                raise Exception('Conversion to ellipsoid failed')
+#             # check for success
+#             if not exists(ref_dem):
+#                 raise Exception('Conversion to ellipsoid failed')
 
-            log.info('Merged DEM converted to ellipsoid per user input')
+#             log.info('Merged DEM converted to ellipsoid per user input')
 
-        else:
-            # cl_call('cp '+ in_dem +' '+ ref_dem, log)
-            ref_dem = in_dem
-            log.info('Merged DEM was kept in original ellipsoid form...')
+#         else:
+#             # cl_call('cp '+ in_dem +' '+ ref_dem, log)
+#             ref_dem = in_dem
+#             log.info('Merged DEM was kept in original ellipsoid form...')
 
-        # Call ASP pc_align function on road and DEM and output translation/rotation matrix
-        align_pc = join(result_dir,'pc-align',basename(final_tif))
-        pc_align_func = join(asp_dir, 'pc_align')
+#         # Call ASP pc_align function on road and DEM and output translation/rotation matrix
+#         align_pc = join(result_dir,'pc-align',basename(final_tif))
+#         pc_align_func = join(asp_dir, 'pc_align')
 
-        # Have is_canopy flag to avoid running twice...
-        if is_canopy is False:     
-            log.info('Beginning pc_align function...')
-            cl_call(f'{pc_align_func} --max-displacement 5 --highest-accuracy \
-                        {ref_dem} {clipped_pc} -o {align_pc}', log)
+#         # Have is_canopy flag to avoid running twice...
+#         if is_canopy is False:     
+#             log.info('Beginning pc_align function...')
+#             cl_call(f'{pc_align_func} --max-displacement 5 --highest-accuracy \
+#                         {ref_dem} {clipped_pc} -o {align_pc}', log)
         
-        # Since there are issues in transforming the point cloud and retaining reflectance,
-        # the best I can do is translation only and no rotation..
-        # Therefore, in this section, if the mode is set to calc SSA, an additional pc_align 
-        # will be called in order to save the X,Y,Z translation only. This will not be applied
-        # to the snow depth products, so there may be some subtle differences when comparing between the two. 
-        # However, this is in hopes to retain the higher information where we can..
-        # --compute-translation-only
-        if las_extra_byte_format is True and is_canopy is False:
-            transform_pc_temp = join(result_dir,'pc-align-translation-only','temp')
-            cl_call(f'{pc_align_func} --max-displacement 5 --highest-accuracy \
-                    --compute-translation-only   \
-                        {ref_dem} {clipped_pc}   \
-                        -o {transform_pc_temp}', log)     
+#         # Since there are issues in transforming the point cloud and retaining reflectance,
+#         # the best I can do is translation only and no rotation..
+#         # Therefore, in this section, if the mode is set to calc SSA, an additional pc_align 
+#         # will be called in order to save the X,Y,Z translation only. This will not be applied
+#         # to the snow depth products, so there may be some subtle differences when comparing between the two. 
+#         # However, this is in hopes to retain the higher information where we can..
+#         # --compute-translation-only
+#         if las_extra_byte_format is True and is_canopy is False:
+#             transform_pc_temp = join(result_dir,'pc-align-translation-only','temp')
+#             cl_call(f'{pc_align_func} --max-displacement 5 --highest-accuracy \
+#                     --compute-translation-only   \
+#                         {ref_dem} {clipped_pc}   \
+#                         -o {transform_pc_temp}', log)     
             
 
-        # Apply transformation matrix to the entire laz and output points
-        # https://groups.google.com/g/ames-stereo-pipeline-support/c/XVCJyXYXgIY/m/n8RRmGXJFQAJ
-        transform_pc = join(result_dir,'pc-transform',basename(final_tif))
-        cl_call(f'{pc_align_func} --max-displacement -1 --num-iterations 0 \
-                    --initial-transform {align_pc}-transform.txt \
-                    --save-transformed-source-points                            \
-                    {ref_dem} {input_laz}   \
-                    -o {transform_pc}', log)
+#         # Apply transformation matrix to the entire laz and output points
+#         # https://groups.google.com/g/ames-stereo-pipeline-support/c/XVCJyXYXgIY/m/n8RRmGXJFQAJ
+#         transform_pc = join(result_dir,'pc-transform',basename(final_tif))
+#         cl_call(f'{pc_align_func} --max-displacement -1 --num-iterations 0 \
+#                     --initial-transform {align_pc}-transform.txt \
+#                     --save-transformed-source-points                            \
+#                     {ref_dem} {input_laz}   \
+#                     -o {transform_pc}', log)
 
-        # Grid the output to a 0.5 meter tif (NOTE: this needs to be changed to 1m if using py3dep)
-        point2dem_func = join(asp_dir, 'point2dem')
-        # final_tif = join(ice_dir, 'pc-grid', 'run')
-        cl_call(f'{point2dem_func} {transform_pc}-trans_source.laz \
-                    --dem-spacing 0.5 --search-radius-factor 2 -o {final_tif}', log)
+#         # Grid the output to a 0.5 meter tif (NOTE: this needs to be changed to 1m if using py3dep)
+#         point2dem_func = join(asp_dir, 'point2dem')
+#         # final_tif = join(ice_dir, 'pc-grid', 'run')
+#         cl_call(f'{point2dem_func} {transform_pc}-trans_source.laz \
+#                     --dem-spacing 0.5 --search-radius-factor 2 -o {final_tif}', log)
     
-        return final_tif + '-DEM.tif'
+#         return final_tif + '-DEM.tif'
 
-def dem_align(input_laz, 
-              canopy_laz, 
-              laz_fp, 
-              align_shp = 'transform_area/hwy_21/hwy_21_utm_edit_v2.shp', 
-              buffer_meters = 3.0, 
-              dem_is_geoid = False):
+# def dem_align(input_laz, 
+#               canopy_laz, 
+#               laz_fp, 
+#               align_shp = 'transform_area/hwy_21/hwy_21_utm_edit_v2.shp', 
+#               buffer_meters = 3.0, 
+#               dem_is_geoid = False):
     
-    #get the directory of the file
-    results_dir = dirname(laz_fp)
-    json_dir =  join(results_dir, 'jsons')
-    os.makedirs(json_dir, exist_ok= True)
+#     #get the directory of the file
+#     results_dir = dirname(laz_fp)
+#     json_dir =  join(results_dir, 'jsons')
+#     os.makedirs(json_dir, exist_ok= True)
 
-    print('Starting ASP Alignment...\n Loading in shapefile')
-    gdf = gpd.read_file(align_shp)
-    #check that gdf is in UTM
-    assert gdf.crs.is_projected, f'Provided shapefile is not in a projected coordinate system. Please provide a shapefile in a projected coordinate system.'
-    #check that gdf crs is same as las crs
-    with laspy.open(laz_fp) as las:
-        hdr = las.header
-        crs = hdr.parse_crs()
-    assert gdf.crs == crs, f'Provided shapefile is not in the same coordinate system as the las file. Please provide a shapefile in the same coordinate system as the las file.'
+#     print('Starting ASP Alignment...\n Loading in shapefile')
+#     gdf = gpd.read_file(align_shp)
+#     #check that gdf is in UTM
+#     assert gdf.crs.is_projected, f'Provided shapefile is not in a projected coordinate system. Please provide a shapefile in a projected coordinate system.'
+#     #check that gdf crs is same as las crs
+#     with laspy.open(laz_fp) as las:
+#         hdr = las.header
+#         crs = hdr.parse_crs()
+#     assert gdf.crs == crs, f'Provided shapefile is not in the same coordinate system as the las file. Please provide a shapefile in the same coordinate system as the las file.'
     
-    # Buffer geom based on user input. NOTE: we assume buffer_meters is the entire width. 
-    # So, must divide by 2 here to get the right distance from centerline.
-    print(f'Buffer width of {buffer_meters} m is used. This is {buffer_meters / 2} m from centerline.')
-    gdf['geometry'] = gdf.geometry.buffer(buffer_meters / 2)
+#     # Buffer geom based on user input. NOTE: we assume buffer_meters is the entire width. 
+#     # So, must divide by 2 here to get the right distance from centerline.
+#     print(f'Buffer width of {buffer_meters} m is used. This is {buffer_meters / 2} m from centerline.')
+#     gdf['geometry'] = gdf.geometry.buffer(buffer_meters / 2)
 
-    # Create a new attribute to be used for PDAL clip/overlay
-    gdf['CLS'] = 42
+#     # Create a new attribute to be used for PDAL clip/overlay
+#     gdf['CLS'] = 42
 
-    # Save buffered shpfile to directory we just made
-    buff_shp = join(results_dir, 'buffered_area.shp')
-    gdf.to_file(buff_shp)
+#     # Save buffered shpfile to directory we just made
+#     buff_shp = join(results_dir, 'buffered_area.shp')
+#     gdf.to_file(buff_shp)
 
-    #make a subdirectory for the products in the results directory
-    products_dir = join(results_dir, 'products')
-    os.makedirs(products_dir, exist_ok= True)
+#     #make a subdirectory for the products in the results directory
+#     products_dir = join(results_dir, 'products')
+#     os.makedirs(products_dir, exist_ok= True)
 
-    # create a file path for the aligned snow and canopy products
-    snow_final_tif = join(products_dir, 'snow')
-    canopy_final_tif = join(products_dir, 'canopy')
+#     # create a file path for the aligned snow and canopy products
+#     snow_final_tif = join(products_dir, 'snow')
+#     canopy_final_tif = join(products_dir, 'canopy')
 
-    if exists(snow_final_tif + '.tif') and exists(canopy_final_tif + '.tif'):
-        while True:
-            ans = input("Aligned tif already exists. Enter y to overwrite and n to use existing:")
-            if ans.lower() == 'n':
-                return snow_final_tif + '.tif', canopy_final_tif+ '.tif'
-            elif ans.lower() == 'y':
-                break
+#     if exists(snow_final_tif + '.tif') and exists(canopy_final_tif + '.tif'):
+#         while True:
+#             ans_ = input("Aligned tif already exists. Enter y to overwrite and n to use existing:")
+#             if ans_.lower() == 'n':
+#                 return snow_final_tif + '.tif', canopy_final_tif+ '.tif'
+#             elif ans_.lower() == 'y':
+#                 break
 
-    snow_tif = clip_align(input_laz=input_laz, buff_shp=buff_shp, result_dir=products_dir,\
-        json_dir=json_dir, dem_is_geoid=dem_is_geoid, asp_dir=asp_dir,\
-        final_tif = snow_final_tif, is_canopy=False)
+#     snow_tif = clip_align(input_laz=input_laz, buff_shp=buff_shp, result_dir=products_dir,\
+#         json_dir=json_dir, dem_is_geoid=dem_is_geoid, asp_dir=asp_dir,\
+#         final_tif = snow_final_tif, is_canopy=False)
 
-    canopy_tif = clip_align(input_laz=canopy_laz, buff_shp=buff_shp, result_dir=products_dir,\
-        json_dir=json_dir, dem_is_geoid=dem_is_geoid, asp_dir=asp_dir,\
-        final_tif = canopy_final_tif, is_canopy=True)
+#     canopy_tif = clip_align(input_laz=canopy_laz, buff_shp=buff_shp, result_dir=products_dir,\
+#         json_dir=json_dir, dem_is_geoid=dem_is_geoid, asp_dir=asp_dir,\
+#         final_tif = canopy_final_tif, is_canopy=True)
 
-    # For some reason this is returning 1 when a product IS created..
-    if not exists(snow_tif):
-       print(f'Can not find {snow_tif}')
-       raise Exception('No final product created')
+#     # For some reason this is returning 1 when a product IS created..
+#     if not exists(snow_tif):
+#        print(f'Can not find {snow_tif}')
+#        raise Exception('No final product created')
 
-    return snow_tif, canopy_tif
+#     return snow_tif, canopy_tif
 
 
 
@@ -561,7 +561,6 @@ class Map(ipyleaflet.Map):
         Returns:
             _type_: GeoData object.
         """
-        import geopandas as gpd
         gdf = gpd.read_file(data)
         geojson = gdf.__geo_interface__
         self.add_geojson(geojson, name = name, **kwargs)

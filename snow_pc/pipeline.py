@@ -97,7 +97,8 @@ def dem1_pipeline(in_fp, outlas, outtif, dem_fp, json_name = 'las2unaligned', js
     return json_to_use
 
 def dem2_pipeline(in_fp, outlas, outtif, dem_fp, json_name = 'las2unaligned', json_dir = './jsons', canopy = False):
-    # check this for improvement: https://pdal.io/en/2.6.0/tutorial/ground-filters.html    
+    # check this for improvement: https://pdal.io/en/2.6.0/tutorial/ground-filters.html
+    pass    
 
 def clip_laz(input_laz, shape_file):
     pass
