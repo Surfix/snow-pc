@@ -70,7 +70,7 @@ def prepare_pc(in_dir: str, replace: str = ''):
     # checks on directory and user update
     assert isdir(in_dir), f'Provided: {in_dir} is not a directory. Provide directory with .laz files.'
 
-    #checks if there is atleast one file in the directory
+    #checks if there is at least one file in the directory
     assert len(glob(join(in_dir, '*'))) > 0, f'No files found in {in_dir}'
 
     #change to the directory
