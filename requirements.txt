@@ -1,7 +1,6 @@
 folium
 ipyleaflet
 python-pdal
-gdal
 rioxarray
 py3dep
 shapely
