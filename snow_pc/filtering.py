@@ -1,4 +1,7 @@
 from snow_pc import download_dem
+import os
+from os.path import dirname, join
+import json
 import subprocess
 
 def dem_filtering(laz_fp, dem_fp = '', dem_low = 25, dem_high = 35):
@@ -28,9 +31,20 @@ def dem_filtering(laz_fp, dem_fp = '', dem_low = 25, dem_high = 35):
             }
         ]
     }
-    #subprocess to run the json pipeline
-    subprocess.run(["pdal", "pipeline", json_pipeline])
     
+    #get the directory of the file
+    results_dir = dirname(laz_fp)
+    json_dir =  join(results_dir, 'jsons')
+    os.makedirs(json_dir, exist_ok= True)
+    json_name = 'dem_filtering'
+    json_to_use = join(json_dir, f'{json_name}.json')
+    #write json pipeline to file
+    with open(json_to_use, 'w') as f:
+        json.dump(json_pipeline, f)
+
+    #run the json pipeline
+    subprocess.run(["pdal", "pipeline", json_to_use])
+
     return out_fp
 
 
