@@ -155,3 +155,42 @@ def outlier_filtering(laz_fp, mean_k = 20, multiplier = 3):
 
     return out_fp
 
+def ground_segmentation(laz_fp):
+    """Use filters.smrf and filters.range to segment ground points"""
+    #get the directory of the file
+    results_dir = dirname(laz_fp)
+    #create a filepath for the output las file
+    out_fp = join(results_dir, "ground_segmented.laz")
+    #create a json pipeline for pdal
+    json_pipeline = {
+        "pipeline": [
+            {
+                "type": "readers.las",
+                "filename": laz_fp
+            },
+            {
+                "type": "filters.smrf",\
+                "ignore": "Classification[7:7], NumberOfReturns[0:0], ReturnNumber[0:0]"
+            },
+            {
+                "type": "filters.range",
+                "limits": "Classification[2:2]"
+            },
+            {
+                "type": "writers.las",
+                "filename": out_fp
+            }
+        ]
+    }
+    #create a directory to save the json pipeline
+    json_dir =  join(results_dir, 'jsons')
+    os.makedirs(json_dir, exist_ok= True)
+    json_name = 'ground_segmentation'
+    json_to_use = join(json_dir, f'{json_name}.json')
+    #write json pipeline to file
+    with open(json_to_use, 'w') as f:
+        json.dump(json_pipeline, f)
+    #run the json pipeline
+    subprocess.run(["pdal", "pipeline", json_to_use])
+
+    return out_fp
