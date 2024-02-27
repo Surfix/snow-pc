@@ -14,7 +14,10 @@ def terrain_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, 
     if outlas == '':
         outlas = join(results_dir, "dtm.laz")
     if outtif == '':
-        outtif = join(results_dir, "dtm.tif")    
+        outtif = join(results_dir, "dtm.tif")
+    #download dem using download_dem() if dem_fp is not provided
+    if dem_fp == '':
+        dem_fp, crs, project = download_dem(laz_fp)    
     #create a json pipeline for pdal
     json_pipeline = {
         "pipeline": [
@@ -83,7 +86,10 @@ def surface_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, 
     if outlas == '':
         outlas = join(results_dir, "dsm.laz")
     if outtif == '':
-        outtif = join(results_dir, "dsm.tif")    
+        outtif = join(results_dir, "dsm.tif") 
+    #download dem using download_dem() if dem_fp is not provided
+    if dem_fp == '':
+        dem_fp, crs, project = download_dem(laz_fp)       
     #create a json pipeline for pdal
     json_pipeline = {
         "pipeline": [
