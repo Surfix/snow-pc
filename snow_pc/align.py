@@ -1,5 +1,6 @@
 import os
 import json
+import subprocess
 from os.path import join, dirname, exists
 
 def clip_pc(in_laz, buff_shp, dem_is_geoid, is_canopy = False):
@@ -30,7 +31,7 @@ def clip_pc(in_laz, buff_shp, dem_is_geoid, is_canopy = False):
         with open(json_fp,'w') as outfile:
             json.dump(json_pipeline, outfile, indent = 2)
 
-        #cl_call(f'pdal pipeline {json_path}', log)               
+        subprocess.run(['pdal', 'pipeline', json_fp])               
 
         # Check to see if output clipped point cloud was created
         if not exists(clipped_pc):
