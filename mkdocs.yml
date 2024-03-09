@@ -50,7 +50,9 @@ plugins:
           execute: True
           allow_errors: false
           ignore: ["conf.py"]
-          execute_ignore: ["*ignore.ipynb"]
+          execute_ignore: ["*ignore.ipynb",
+                            "notebooks/*.ipynb",
+          ]
           
 markdown_extensions:
     - admonition
@@ -74,12 +76,16 @@ markdown_extensions:
 nav:
     - Home: index.md
     - Installation: installation.md
-    - Usage: usage.md
+    # - Usage: usage.md
     - Contributing: contributing.md
-    - FAQ: faq.md
+    # - FAQ: faq.md
     - Changelog: changelog.md
     - Report Issues: https://github.com/Surfix/snow-pc/issues
-    - Examples:
-        - examples/examples.ipynb
+    # - Examples:
+    #     - examples/examples.ipynb
     - API Reference:
+          - prepare module: prepare.md
+          - filtering module: filtering.md
+          - modeling module: modeling.md
+          - align_pc module: align_pc.md
           - snow_pc module: snow_pc.md

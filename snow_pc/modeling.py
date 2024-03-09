@@ -7,7 +7,21 @@ import subprocess
 
 #combine the filters into a single function
 def terrain_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, dem_high = 50, mean_k = 20, multiplier = 3):
-    """Use filters.dem, filters.mongo, filters.elm, filters.outlier, filters.smrf, and filters.range to filter the point cloud"""
+    """Use filters.dem, filters.mongo, filters.elm, filters.outlier, filters.smrf, and filters.range to filter the point cloud for terrain models.
+
+    Args:
+        laz_fp (_type_): Filepath to the point cloud file.
+        outlas (str, optional): Filepath to save the output las file. Defaults to ''.
+        outtif (str, optional): Filepath to save the output tif file. Defaults to ''.
+        dem_fp (str, optional): Filepath to the dem file. Defaults to ''.
+        dem_low (int, optional): _description_. Defaults to 20.
+        dem_high (int, optional): _description_. Defaults to 50.
+        mean_k (int, optional): _description_. Defaults to 20.
+        multiplier (int, optional): _description_. Defaults to 3.
+
+    Returns:
+        _type_: Filepath to the terrain model.
+    """
     #get the directory of the file
     results_dir = dirname(laz_fp)
     #create a filepath for the output las and tif file
@@ -79,7 +93,18 @@ def terrain_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, 
     return outlas, outtif
 
 def surface_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, dem_high = 50, mean_k = 20, multiplier = 3):
-    """Use filters.dem, filters.mongo, filters.elm, filters.outlier, filters.smrf, and filters.range to filter the point cloud"""
+    """Use filters.dem, filters.mongo, filters.elm, filters.outlier, filters.smrf, and filters.range to filter the point cloud for surface models.
+
+    Args:
+        laz_fp (_type_): _description_
+        outlas (str, optional): _description_. Defaults to ''.
+        outtif (str, optional): _description_. Defaults to ''.
+        dem_fp (str, optional): _description_. Defaults to ''.
+        dem_low (int, optional): _description_. Defaults to 20.
+        dem_high (int, optional): _description_. Defaults to 50.
+        mean_k (int, optional): _description_. Defaults to 20.
+        multiplier (int, optional): _description_. Defaults to 3.
+    """
     #get the directory of the file
     results_dir = dirname(laz_fp)
     #create a filepath for the output las and tif file

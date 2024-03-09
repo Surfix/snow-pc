@@ -27,6 +27,11 @@ def replace_white_spaces(in_dir, replace = ''):
 
 
 def las2laz(in_dir: str):
+    """Convert all LAS files in a directory to LAZ files.
+
+    Args:
+        in_dir (str): The directory containing the LAS files to convert.
+    """
 
     assert isdir(in_dir), f'{in_dir} is not a directory'
 
@@ -42,6 +47,11 @@ def las2laz(in_dir: str):
 
         
 def merge_laz_files(in_dir, out_fp = 'unaligned_merged.laz'):
+    """Merge all LAZ files in a directory into a single LAZ file.
+    Args:
+        in_dir (_type_): Directory containing the LAZ files to merge.
+        out_fp (str, optional): Filename of the merged LAZ file. Defaults to 'unaligned_merged.laz'.
+    """
     assert isdir(in_dir), f'{in_dir} is not a directory'
     # out fp to save to
     mosaic_fp = join(in_dir, out_fp)
