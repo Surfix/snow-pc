@@ -23,7 +23,7 @@ To install snow_pc, run this command:
 ### Installation
 
 ```bash
-pip install leafmap
+pip install snow-pc
 ```
 
 You can also install from sources with this command:
