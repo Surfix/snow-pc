@@ -1,8 +1,8 @@
-from snow_pc import download_dem
 import os
 from os.path import dirname, join
 import json
 import subprocess
+from snow_pc.common import download_dem
 
 
 #combine the filters into a single function

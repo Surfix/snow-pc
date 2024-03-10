@@ -1,8 +1,8 @@
-from snow_pc import download_dem
 import os
 from os.path import dirname, join
 import json
 import subprocess
+from snow_pc.common import download_dem
 
 def return_filtering(laz_fp):
     """Use filters.mongo to filter out points with invalid returns.
