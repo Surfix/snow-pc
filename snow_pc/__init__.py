@@ -2,7 +2,7 @@
 
 __author__ = """Naheem Adebisi"""
 __email__ = 'adebisi.naheem@gmail.com'
-__version__ = '0.0.2'
+__version__ = '0.1.0'
 
 from .snow_pc import *
 # from .prepare_pc import *
