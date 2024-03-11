@@ -40,3 +40,20 @@ def download_dem(las_fp, dem_fp = 'dem.tif', cache_fp ='./cache/aiohttp_cache.sq
     dem_utm.rio.to_raster(dem_fp)
     # log.debug(f"Saved to {dem_fp}")
     return dem_fp, crs, project
+
+def make_dirs(laz_fp):
+    """Create directories for the laz file and the results.
+
+    Args:
+        laz_fp (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    # set up sub directories
+    in_dir = os.path.dirname(laz_fp)
+    snowpc_dir = os.join(in_dir, 'snow-pc')
+    os.makedirs(snowpc_dir, exist_ok= True)
+    results_dir = os.join(snowpc_dir, 'results')
+    os.makedirs(results_dir, exist_ok= True)
+    return results_dir

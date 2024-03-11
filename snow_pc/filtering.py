@@ -2,7 +2,7 @@ import os
 from os.path import dirname, join
 import json
 import subprocess
-from snow_pc.common import download_dem
+from snow_pc.common import download_dem, make_dirs
 
 def return_filtering(laz_fp):
     """Use filters.mongo to filter out points with invalid returns.
@@ -14,7 +14,7 @@ def return_filtering(laz_fp):
         _type_: Filepath to the filtered point cloud file.
     """
     #get the directory of the file
-    results_dir = dirname(laz_fp)
+    results_dir = make_dirs(laz_fp)
     #create a filepath for the output las file
     out_fp = join(results_dir, "returns_filtered.laz")
     #create a json pipeline for pdal
@@ -65,7 +65,7 @@ def dem_filtering(laz_fp, dem_fp = '', dem_low = 20, dem_high = 50):
     if dem_fp == '':
         dem_fp, crs, project = download_dem(laz_fp)
     #get the directory of the file
-    results_dir = dirname(laz_fp)
+    results_dir = make_dirs(laz_fp)
     #create a filepath for the output las file
     out_fp = join(results_dir, "dem_filtered.laz")
     #create a json pipeline for pdal
@@ -109,7 +109,7 @@ def elm_filtering(laz_fp):
         _type_: Filepath to the filtered point cloud file.
     """
     #get the directory of the file
-    results_dir = dirname(laz_fp)
+    results_dir = make_dirs(laz_fp)
     #create a filepath for the output las file
     out_fp = join(results_dir, "elm_filtered.laz")
     #create a json pipeline for pdal
@@ -153,7 +153,7 @@ def outlier_filtering(laz_fp, mean_k = 20, multiplier = 3):
         _type_: Filepath to the filtered point cloud file.
     """
     #get the directory of the file
-    results_dir = dirname(laz_fp)
+    results_dir = make_dirs(laz_fp)
     #create a filepath for the output las file
     out_fp = join(results_dir, "outlier_filtered.laz")
     #create a json pipeline for pdal
@@ -198,7 +198,7 @@ def ground_segmentation(laz_fp):
         _type_: Filepath to the segmented point cloud file.
     """
     #get the directory of the file
-    results_dir = dirname(laz_fp)
+    results_dir = make_dirs(laz_fp)
     #create a filepath for the output las file
     out_fp = join(results_dir, "ground_segmented.laz")
     out_fp2 = join(results_dir, "ground_segmented.tif")
@@ -252,7 +252,7 @@ def surface_segmentation(laz_fp):
         _type_: Filepath to the segmented point cloud file.
     """
     #get the directory of the file
-    results_dir = dirname(laz_fp)
+    results_dir = make_dirs(laz_fp)
     #create a filepath for the output las file
     out_fp = join(results_dir, "surface_segmented.laz")
     out_fp2 = join(results_dir, "surface_segmented.tif")

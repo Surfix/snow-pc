@@ -2,7 +2,7 @@ import os
 from os.path import dirname, join
 import json
 import subprocess
-from snow_pc.common import download_dem
+from snow_pc.common import download_dem, make_dirs
 
 
 #combine the filters into a single function
@@ -23,7 +23,7 @@ def terrain_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, 
         _type_: Filepath to the terrain model.
     """
     #get the directory of the file
-    results_dir = dirname(laz_fp)
+    results_dir = make_dirs(laz_fp)
     #create a filepath for the output las and tif file
     if outlas == '':
         outlas = join(results_dir, "dtm.laz")
@@ -109,7 +109,7 @@ def surface_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, 
         _type_: Filepath to the terrain model.
     """
     #get the directory of the file
-    results_dir = dirname(laz_fp)
+    results_dir = make_dirs(laz_fp)
     #create a filepath for the output las and tif file
     if outlas == '':
         outlas = join(results_dir, "dsm.laz")

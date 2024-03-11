@@ -134,17 +134,19 @@ To learn more about snow_pc, check out the snow_pc [api reference](https://surfi
 
 ### Common module
  - `download_dem(las_fp)` : Download DEM within the bounds of the las file.
+ - `def make_dirs(laz_fp)`: Create result directory for the tasks.
 
 
 
 ##  TODO
 - [x] Add ground segmentation function to the filtering module
-- [] Refactor the modeling module 
-- [] Refactor the clip_pc module and add pc_align function to align module (ASP does not support windows distribution???)
-- [] Refactor the snow_pc module (move download_dem function to common module, Merge all steps into one call)
-- [x] Complete surface segmation function to the filtering module
-- [] Use a better algorithm than first return isolation for the surface_segmentation (filtering_module)
+- [x] Refactor the modeling module 
+- [] Confirm that the surface_segmentation and surface_model works for LiDAR and Photogrammetry
 - [] Improve the segmentation accuracy for photogrammetry point clouds
+- [] Refactor the snow_pc module (Merge all steps into one call)
+- [x] Complete surface segmation function to the filtering module
+- [] Refactor the clip_pc module and add pc_align function to align module (ASP does not support windows distribution???)
+- [] Implement coregistration using points
 - [] Add a novel approach for combining LiDAR and photogrammetry point clouds
 - [] Add interactive map feature to allow users draw control surface for coregistration
-- [] Implement coregistration using points
+
