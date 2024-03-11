@@ -42,7 +42,7 @@ from snow_pc import prepare_pc
 prepare_pc('project_dir')
 ```
 
-This function returns the path to the processed point clouds. Additional filtering can be applied using functions from the filtering.py module. 
+This function returns the path to the prepared point clouds. Additional filtering can be applied using functions from the filtering.py module. 
 
 ```bash
 from snow_pc.filtering import return_filtering, elm_filtering, outlier_filtering, dem_filtering, ground_segmentation
@@ -58,7 +58,13 @@ ground_segmentation('outlier_filtered.laz')
 However, users can move on to generating elevation models and the necessary filtering will be applied as required. 
 
 ### Generating DEMs and DSMs
+modeling module provides `terrain_models` and `surface_models` function for generating dtm and dsm models.
 
+ ```bash
+from snow_pc.modeling import terrain_models, surface_models
+dtm_laz, dtm_tif = terrain_models('laz_fp')
+dsm_laz, dsm_tif = surface_models('laz_fp')
+ ```
 snow_pc module provides a pc2uncorrectedDEM for generating Digital Terrain Models and Digital Surface Models from point cloud file in a single code call.
 
 ```bash

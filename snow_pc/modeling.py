@@ -104,6 +104,9 @@ def surface_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, 
         dem_high (int, optional): _description_. Defaults to 50.
         mean_k (int, optional): _description_. Defaults to 20.
         multiplier (int, optional): _description_. Defaults to 3.
+    
+    Returns:
+        _type_: Filepath to the terrain model.
     """
     #get the directory of the file
     results_dir = dirname(laz_fp)
@@ -152,3 +155,5 @@ def surface_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, 
         json.dump(json_pipeline, f)
     #run the json pipeline
     subprocess.run(["pdal", "pipeline", json_to_use])
+
+    return outlas, outtif
