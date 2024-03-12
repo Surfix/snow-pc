@@ -51,7 +51,7 @@ plugins:
           allow_errors: false
           ignore: ["conf.py"]
           execute_ignore: ["*ignore.ipynb",
-                            "notebooks/*.ipynb",
+                            "docs/examples/notebooks/*",
           ]
           
 markdown_extensions:
