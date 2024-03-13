@@ -19,6 +19,10 @@ def download_dem(las_fp, dem_fp = 'dem.tif', cache_fp ='./cache/aiohttp_cache.sq
     Returns:
         _type_: The filepath to the downloaded DEM, the crs of the las file, and the transform from the las crs to wgs84. 
     """
+    #set the working directory
+    in_dir = os.path.dirname(laz_fp)
+    os.chdir(in_dir)
+    
     # read crs of las file
     with laspy.open(las_fp) as las:
         hdr = las.header
@@ -41,7 +45,7 @@ def download_dem(las_fp, dem_fp = 'dem.tif', cache_fp ='./cache/aiohttp_cache.sq
     # log.debug(f"Saved to {dem_fp}")
     return dem_fp, crs, project
 
-def make_dirs(laz_fp):
+def make_dirs(in_dir):
     """Create directories for the laz file and the results.
 
     Args:
@@ -51,7 +55,6 @@ def make_dirs(laz_fp):
         _type_: _description_
     """
     # set up sub directories
-    in_dir = os.path.dirname(laz_fp)
     snowpc_dir = os.join(in_dir, 'snow-pc')
     os.makedirs(snowpc_dir, exist_ok= True)
     results_dir = os.join(snowpc_dir, 'results')

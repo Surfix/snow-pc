@@ -22,16 +22,20 @@ def terrain_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, 
     Returns:
         _type_: Filepath to the terrain model.
     """
-    #get the directory of the file
-    results_dir = make_dirs(laz_fp)
+    #set the working directory
+    in_dir = os.path.dirname(laz_fp)
+    os.chdir(in_dir)
+
     #create a filepath for the output las and tif file
     if outlas == '':
-        outlas = join(results_dir, "dtm.laz")
+        outlas = "dtm.laz"
     if outtif == '':
-        outtif = join(results_dir, "dtm.tif")
+        outtif = "dtm.tif"
+
     #download dem using download_dem() if dem_fp is not provided
     if dem_fp == '':
-        dem_fp, crs, project = download_dem(laz_fp)    
+        dem_fp, crs, project = download_dem(laz_fp)
+
     #create a json pipeline for pdal
     json_pipeline = {
         "pipeline": [
@@ -79,14 +83,17 @@ def terrain_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, 
             }
         ]
     }
+
     #create a directory to save the json pipeline
-    json_dir =  join(results_dir, 'jsons')
+    json_dir =  join(in_dir, 'jsons')
     os.makedirs(json_dir, exist_ok= True)
     json_name = 'dtm_pipeline'
     json_to_use = join(json_dir, f'{json_name}.json')
+
     #write json pipeline to file
     with open(json_to_use, 'w') as f:
         json.dump(json_pipeline, f)
+
     #run the json pipeline
     subprocess.run(["pdal", "pipeline", json_to_use])
 
@@ -108,16 +115,20 @@ def surface_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, 
     Returns:
         _type_: Filepath to the terrain model.
     """
-    #get the directory of the file
-    results_dir = make_dirs(laz_fp)
+    #set the working directory
+    in_dir = os.path.dirname(laz_fp)
+    os.chdir(in_dir)
+
     #create a filepath for the output las and tif file
     if outlas == '':
-        outlas = join(results_dir, "dsm.laz")
+        outlas = "dsm.laz"
     if outtif == '':
-        outtif = join(results_dir, "dsm.tif") 
+        outtif = "dsm.tif"
+
     #download dem using download_dem() if dem_fp is not provided
     if dem_fp == '':
-        dem_fp, crs, project = download_dem(laz_fp)       
+        dem_fp, crs, project = download_dem(laz_fp)  
+
     #create a json pipeline for pdal
     json_pipeline = {
         "pipeline": [
@@ -145,14 +156,17 @@ def surface_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, 
             }
         ]
     }
+
     #create a directory to save the json pipeline
-    json_dir =  join(results_dir, 'jsons')
+    json_dir =  join(in_dir, 'jsons')
     os.makedirs(json_dir, exist_ok= True)
     json_name = 'dsm_pipeline'
     json_to_use = join(json_dir, f'{json_name}.json')
+
     #write json pipeline to file
     with open(json_to_use, 'w') as f:
         json.dump(json_pipeline, f)
+        
     #run the json pipeline
     subprocess.run(["pdal", "pipeline", json_to_use])
 

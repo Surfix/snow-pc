@@ -4,7 +4,7 @@ import json
 import subprocess
 from snow_pc.common import download_dem, make_dirs
 
-def return_filtering(laz_fp):
+def return_filtering(laz_fp, out_fp = ''):
     """Use filters.mongo to filter out points with invalid returns.
 
     Args:
@@ -13,10 +13,14 @@ def return_filtering(laz_fp):
     Returns:
         _type_: Filepath to the filtered point cloud file.
     """
-    #get the directory of the file
-    results_dir = make_dirs(laz_fp)
+    #set the working directory
+    in_dir = os.path.dirname(laz_fp)
+    os.chdir(in_dir)
+
     #create a filepath for the output las file
-    out_fp = join(results_dir, "returns_filtered.laz")
+    if out_fp == '':
+        out_fp = "returns_filtered.laz"
+
     #create a json pipeline for pdal
     json_pipeline = {
         "pipeline": [
@@ -37,7 +41,7 @@ def return_filtering(laz_fp):
         ]
     }
     #create a directory to save the json pipeline
-    json_dir =  join(results_dir, 'jsons')
+    json_dir =  join(in_dir, 'jsons')
     os.makedirs(json_dir, exist_ok= True)
     json_name = 'return_filtering'
     json_to_use = join(json_dir, f'{json_name}.json')
@@ -49,7 +53,7 @@ def return_filtering(laz_fp):
 
     return out_fp
 
-def dem_filtering(laz_fp, dem_fp = '', dem_low = 20, dem_high = 50):
+def dem_filtering(laz_fp, dem_fp = '', dem_low = 20, dem_high = 50, out_fp = ''):
     """Use filters.dem to filter the point cloud to the DEM. 
 
     Args:
@@ -64,10 +68,16 @@ def dem_filtering(laz_fp, dem_fp = '', dem_low = 20, dem_high = 50):
     #download dem using download_dem() if dem_fp is not provided
     if dem_fp == '':
         dem_fp, crs, project = download_dem(laz_fp)
-    #get the directory of the file
-    results_dir = make_dirs(laz_fp)
+
+    #set the working directory
+    in_dir = os.path.dirname(laz_fp)
+    os.chdir(in_dir)
+
     #create a filepath for the output las file
-    out_fp = join(results_dir, "dem_filtered.laz")
+    if out_fp == '':
+        out_fp = "dem_filtered.laz"
+
+
     #create a json pipeline for pdal
     json_pipeline = {
         "pipeline": [
@@ -87,7 +97,7 @@ def dem_filtering(laz_fp, dem_fp = '', dem_low = 20, dem_high = 50):
         ]
     }
     #create a directory to save the json pipeline
-    json_dir =  join(results_dir, 'jsons')
+    json_dir =  join(in_dir, 'jsons')
     os.makedirs(json_dir, exist_ok= True)
     json_name = 'dem_filtering'
     json_to_use = join(json_dir, f'{json_name}.json')
@@ -99,7 +109,7 @@ def dem_filtering(laz_fp, dem_fp = '', dem_low = 20, dem_high = 50):
 
     return out_fp
 
-def elm_filtering(laz_fp):
+def elm_filtering(laz_fp, out_fp = ''):
     """Use filters.elm to filter the point cloud.
 
     Args:
@@ -108,10 +118,14 @@ def elm_filtering(laz_fp):
     Returns:
         _type_: Filepath to the filtered point cloud file.
     """
-    #get the directory of the file
-    results_dir = make_dirs(laz_fp)
+    #set the working directory
+    in_dir = os.path.dirname(laz_fp)
+    os.chdir(in_dir)
+
     #create a filepath for the output las file
-    out_fp = join(results_dir, "elm_filtered.laz")
+    if out_fp == '':
+        out_fp = "elm_filtered.laz"
+    
     #create a json pipeline for pdal
     json_pipeline = {
         "pipeline": [
@@ -129,7 +143,7 @@ def elm_filtering(laz_fp):
         ]
     }
     #create a directory to save the json pipeline
-    json_dir =  join(results_dir, 'jsons')
+    json_dir =  join(in_dir, 'jsons')
     os.makedirs(json_dir, exist_ok= True)
     json_name = 'elm_filtering'
     json_to_use = join(json_dir, f'{json_name}.json')
@@ -141,7 +155,7 @@ def elm_filtering(laz_fp):
 
     return out_fp
 
-def outlier_filtering(laz_fp, mean_k = 20, multiplier = 3):
+def outlier_filtering(laz_fp, mean_k = 20, multiplier = 3, out_fp = ''):
     """Use filters.outlier to filter the point cloud.
 
     Args:
@@ -152,10 +166,14 @@ def outlier_filtering(laz_fp, mean_k = 20, multiplier = 3):
     Returns:
         _type_: Filepath to the filtered point cloud file.
     """
-    #get the directory of the file
-    results_dir = make_dirs(laz_fp)
+    #set the working directory
+    in_dir = os.path.dirname(laz_fp)
+    os.chdir(in_dir)
+
     #create a filepath for the output las file
-    out_fp = join(results_dir, "outlier_filtered.laz")
+    if out_fp == '':
+        out_fp = "outlier_filtered.laz"
+
     #create a json pipeline for pdal
     json_pipeline = {
         "pipeline": [
@@ -176,7 +194,7 @@ def outlier_filtering(laz_fp, mean_k = 20, multiplier = 3):
         ]
     }
     #create a directory to save the json pipeline
-    json_dir =  join(results_dir, 'jsons')
+    json_dir =  join(in_dir, 'jsons')
     os.makedirs(json_dir, exist_ok= True)
     json_name = 'outlier_filtering'
     json_to_use = join(json_dir, f'{json_name}.json')
@@ -188,7 +206,7 @@ def outlier_filtering(laz_fp, mean_k = 20, multiplier = 3):
 
     return out_fp
 
-def ground_segmentation(laz_fp):
+def ground_segmentation(laz_fp, out_fp = '', out_fp2 = ''):
     """Use filters.smrf and filters.range to segment ground points.
 
     Args:
@@ -197,11 +215,16 @@ def ground_segmentation(laz_fp):
     Returns:
         _type_: Filepath to the segmented point cloud file.
     """
-    #get the directory of the file
-    results_dir = make_dirs(laz_fp)
-    #create a filepath for the output las file
-    out_fp = join(results_dir, "ground_segmented.laz")
-    out_fp2 = join(results_dir, "ground_segmented.tif")
+    #set the working directory
+    in_dir = os.path.dirname(laz_fp)
+    os.chdir(in_dir)
+
+    #create a filepath for the output laz and tif file
+    if out_fp == '':
+        out_fp = "ground_segmented.laz"
+    if out_fp2 == '':
+        out_fp2 = "ground_segmented.tif"
+
     #create a json pipeline for pdal
     json_pipeline = {
         "pipeline": [
@@ -230,7 +253,7 @@ def ground_segmentation(laz_fp):
         ]
     }
     #create a directory to save the json pipeline
-    json_dir =  join(results_dir, 'jsons')
+    json_dir =  join(in_dir, 'jsons')
     os.makedirs(json_dir, exist_ok= True)
     json_name = 'ground_segmentation'
     json_to_use = join(json_dir, f'{json_name}.json')
@@ -242,7 +265,7 @@ def ground_segmentation(laz_fp):
 
     return out_fp, out_fp2
 
-def surface_segmentation(laz_fp):
+def surface_segmentation(laz_fp, out_fp = '', out_fp2 = ''):
     """Use filters.range to segment the surface points.
 
     Args:
@@ -251,11 +274,16 @@ def surface_segmentation(laz_fp):
     Returns:
         _type_: Filepath to the segmented point cloud file.
     """
-    #get the directory of the file
-    results_dir = make_dirs(laz_fp)
-    #create a filepath for the output las file
-    out_fp = join(results_dir, "surface_segmented.laz")
-    out_fp2 = join(results_dir, "surface_segmented.tif")
+    #set the working directory
+    in_dir = os.path.dirname(laz_fp)
+    os.chdir(in_dir)
+
+    #create a filepath for the output laz and tif file
+    if out_fp == '':
+        out_fp = "surface_segmented.laz"
+    if out_fp2 == '':
+        out_fp2 = "surface_segmented.tif"
+
     #create a json pipeline for pdal
     json_pipeline = {
         "pipeline": [
@@ -280,7 +308,7 @@ def surface_segmentation(laz_fp):
         ]
     }
     #create a directory to save the json pipeline
-    json_dir =  join(results_dir, 'jsons')
+    json_dir =  join(in_dir, 'jsons')
     os.makedirs(json_dir, exist_ok= True)
     json_name = 'surface_segmentation'
     json_to_use = join(json_dir, f'{json_name}.json')

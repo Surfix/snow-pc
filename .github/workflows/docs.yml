@@ -26,3 +26,7 @@ jobs:
                   python -m unittest discover tests/
             - run: pip install -r requirements_docs.txt
             - run: mkdocs gh-deploy --force
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+              node-version: '20.x' # replace with your desired Node.js version
