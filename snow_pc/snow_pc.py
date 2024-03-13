@@ -42,10 +42,10 @@ def pc2uncorrectedDEM(in_dir, dem_fp = ''):
     unfiltered_laz = prepare_pc(in_dir)
 
     #create uncorrected DTM
-    dtm_laz, dtm_tif = terrain_models(unfiltered_laz)
+    dtm_laz, dtm_tif = terrain_models(unfiltered_laz, dem_fp = dem_fp)
 
     #create uncorrected DSM
-    dsm_laz, dtm_tif = surface_models(unfiltered_laz)
+    dsm_laz, dtm_tif = surface_models(unfiltered_laz, dem_fp = dem_fp)
 
     return dtm_laz, dtm_tif, dsm_laz, dsm_tif
 
@@ -65,7 +65,7 @@ def pc2correctedDEM(in_dir, align_shp, dem_fp = ''):
 
 
     # create uncorrected DEM
-    outlas, outtif, canopy_laz, canopy_tif = pc2uncorrectedDEM(in_dir, dem_fp)
+    outlas, outtif, canopy_laz, canopy_tif = pc2uncorrectedDEM(in_dir, dem_fp = dem_fp)
 
     # # align the point cloud
     # snow_tif, canopy_tif = dem_align(laz_fp, align_shp, dem_fp, debug)
