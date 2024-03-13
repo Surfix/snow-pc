@@ -3,6 +3,7 @@ import os
 import subprocess
 from glob import glob
 from os.path import isdir, join
+import shutil
 
 from snow_pc.common import make_dirs
 
@@ -114,7 +115,7 @@ def prepare_pc(in_dir: str, replace: str = ''):
         print('Merging LAZ files...')
         mosaic_fp = os.path.join(results_dir, 'unfiltered_merge.laz')
         merge_laz_files(in_dir, out_fp= mosaic_fp)
-        if exists(mosaic_fp):
+        if os.path.exists(mosaic_fp):
             return mosaic_fp
         else:
             print(f"Error: Mosaic file not created")
