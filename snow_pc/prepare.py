@@ -112,7 +112,7 @@ def prepare_pc(in_dir: str, replace: str = ''):
     # if there is more than 1 laz file, merge them
     if len(glob(join(in_dir, '*.laz'))) > 1:
         print('Merging LAZ files...')
-        mosaic_fp = join(results_dir, 'unfiltered_merge.laz')
+        mosaic_fp = os.path.join(results_dir, 'unfiltered_merge.laz')
         merge_laz_files(in_dir, out_fp= mosaic_fp)
         if exists(mosaic_fp):
             return mosaic_fp
