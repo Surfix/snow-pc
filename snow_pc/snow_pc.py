@@ -201,16 +201,16 @@ def pc2correctedDEM(in_dir, align_shp, dem_fp = ''):
 #         return geojson
     
 #     def add_shp(self, data, name = "shapefile", **kwargs):
-        """Add a shapefile to the map.
+        # """Add a shapefile to the map.
 
-        Args:
-            data (_type_): A shapefile object.
+        # Args:
+        #     data (_type_): A shapefile object.
 
-        Returns:
-            _type_: GeoData object.
-        """
-        gdf = gpd.read_file(data)
-        geojson = gdf.__geo_interface__
-        self.add_geojson(geojson, name = name, **kwargs)
+        # Returns:
+        #     _type_: GeoData object.
+        # """
+        # gdf = gpd.read_file(data)
+        # geojson = gdf.__geo_interface__
+        # self.add_geojson(geojson, name = name, **kwargs)
         
         
