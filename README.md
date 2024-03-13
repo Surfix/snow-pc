@@ -34,7 +34,7 @@ pip install git+https://github.com/Surfix/snow-pc
 
 
 ### Generating Uncorrected and Corrected DTM and DSM
-snow_pc.py module features the pc2uncorrectedDEM function which takes a user directory contain point cloud files, performs the necessary preparation (remove white space, covers las to laz and mosaic) and generate DTM and DSM files (laz and tif). DEM is required to perform dem_filtering so pc2uncorrectedDEM takes the path to a dem as an optional arguement. If this arguement is not defined, the dem DEM within the bounds of the point cloud file will be automatically download from Py3DEP. 
+snow_pc.py module features the pc2uncorrectedDEM function which takes a user directory contain point cloud files, performs the necessary preparation (remove white space, covers las to laz and mosaic) and generate DTM and DSM files (laz and tif). DEM is required to perform dem_filtering so pc2uncorrectedDEM takes the path to a dem as an optional argument. If this argument is not defined, the dem DEM within the bounds of the point cloud file will be automatically download from Py3DEP. 
 
 ```bash
 from snow_pc import pc2uncorrectedDEM
@@ -66,7 +66,7 @@ Contain tools for common tasks
 This module includes tools for performing preprocessing tasks like removing whitespace from files, converting LAS to LAZ format, and merging files within a directory.
 - `replace_white_spaces(in_dir)` : remove white spaces in the point cloud files. 
 - `las2laz(in_dir)` : Takes a user directory full of las files and convert the files to LAZ files. LAZ is a compressed version of LAS so it provides optimal data transfer and computation efficiency.
-- `merge_laz_files(in_dir)`: merge all LAZ files in the project directory into one LAZ file. This step is crucial for mosaicking point cloud data from different flight lines to ensure seamless coverage over the area of interest, simplify data management tasks and facilitate processing in subsequent commands that take a single point cloud file. 
+- `merge_laz_files(in_dir)`: merge all LAZ files in the project directory into one LAZ file. This step is crucial to mosaic point cloud data from different flight lines to ensure seamless coverage over the area of interest, simplify data management tasks and facilitate processing in subsequent commands that take a single point cloud file. 
 
 - `prepare_pc(in_dir)` : Steps through all preparing tools in one call
 ```bash
@@ -110,7 +110,7 @@ ground_segmentation('outlier_filtered.laz')
 - `align(in_laz, dem)`: Align the point clouds to a reference [To do]
 
 ### Product module
-- `generate_product(dtm_file, dsm_file)`: Derive snow depth and canopyheight from DTM and DSM files [To do]
+- `generate_product(dtm_file, dsm_file)`: Derive snow depth and canopy height from DTM and DSM files [To do]
 
 ![view lidar](filtering_result.png)
 *Intermittent results of DTM pipeline workflow for a track. The original point cloud is shown in top left. Point clouds after removal of invalid return is shown in top right. Bottom left is applying dem filter while the bottom right is the ground segmented points. Dem filter effectively removes noise in the point cloud such that no point is left for elm and outlier filter.*
@@ -127,7 +127,7 @@ leafmap.view_lidar('unfiltered_merge.laz', cmap="terrain")
 ##  TODO
 - [x] Add ground segmentation function to the filtering module
 - [x] Refactor the modeling module 
-- [x] Complete surface segmation function to the filtering module
+- [x] Complete surface segmentation function to the filtering module
 - [] pc2correctedDEM and pc2snow
 - [] Add a function for combining LiDAR and photogrammetry point clouds
 
