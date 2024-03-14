@@ -2,7 +2,7 @@ import os
 import json
 import subprocess
 import geopandas as gpd
-from os.path import dirname, join, exists, basename 
+from os.path import dirname, join, exists, basename, abspath 
 
 def clip_pc(laz_fp, align_shp, buffer_width = 3):
     """Clip the point cloud to a shapefile.
@@ -60,7 +60,7 @@ def clip_pc(laz_fp, align_shp, buffer_width = 3):
 
     print('Point cloud clipped to area')
 
-def clip_align(laz_fp, buff_shp, final_tif, asp_dir, dem_is_geoid = False):
+def clip_align(laz_fp, buff_shp, align_path, asp_dir, dem_is_geoid = False):
     """Clip the point cloud to a shapefile.
 
     Args:
@@ -114,23 +114,23 @@ def clip_align(laz_fp, buff_shp, final_tif, asp_dir, dem_is_geoid = False):
 
 
     #call asp pc_align function on road and DEM and output translation/rotation matrix
-    align_pc = join(in_dir,'pc-align',basename(final_tif)) #set the align files name format
+    align_pc = join(in_dir,'pc-align',basename(align_path)) #set the align files name format
     pc_align_func = join(asp_dir, 'pc_align') #set the path to the pc_align function
     subprocess.run([pc_align_func, '--max-displacement', 5, '--highest-accuacy', ref_dem, clipped_pc, '-o', align_pc]) #run the pc_align function
 
     # Apply transformation matrix to the entire laz and output points
     initial_tansform = join(align_pc, '-transform.txt') #set the transform files name format
-    transform_pc = join(in_dir,'pc-transform',basename(final_tif))
+    transform_pc = join(in_dir,'pc-transform',basename(align_path))
     subprocess.run([pc_align_func, '--max-displacement', -1, '--num-iterations', 0, '--initial-transform', initial_tansform, '--save-transformed-source-points', ref_dem, laz_fp,'-o', transform_pc])
 
     # Grid the output to a 0.5 meter tif (NOTE: this needs to be changed to 1m if using py3dep)
     transform_laz = join(transform_pc, '-transformed.laz')
     point2dem_func = join(asp_dir, 'point2dem')
-    subprocess.run([point2dem_func, transform_laz,'--dem-spacing', 0.5, '--search-radius-factor', 2, '-o', final_tif])
+    subprocess.run([point2dem_func, transform_laz,'--dem-spacing', 0.5, '--search-radius-factor', 2, '-o', align_path])
 
-    return final_tif + '-DEM.tif'
+    return align_path + '-DEM.tif'
 
-def laz_align(laz_fp, align_shp, final_tif, asp_dir, buffer_width = 3, dem_is_geoid = False):
+def laz_align(laz_fp, align_shp, asp_dir, buffer_width = 3, dem_is_geoid = False):
     """Clip the point cloud to a shapefile.
 
     Args:
@@ -144,9 +144,6 @@ def laz_align(laz_fp, align_shp, final_tif, asp_dir, buffer_width = 3, dem_is_ge
     """
     #set the working directory
     in_dir = dirname(laz_fp)
-    #make a directory called products to save the files
-    products_dir = join(in_dir, 'products')
-    os.makedirs(products_dir, exist_ok = True)
 
     #create a buffer around the shapefile to clip the point cloud
     gdf = gpd.read_file(align_shp)
@@ -155,14 +152,17 @@ def laz_align(laz_fp, align_shp, final_tif, asp_dir, buffer_width = 3, dem_is_ge
     buff_shp = join(in_dir, 'buffered_area.shp')
     gdf.to_file(buff_shp)
 
-    # os.chdir(in_dir)
-    snow_final_tif = join(products_dir, basename(in_dir)+'-snow.tif')
-    canopy_final_tif = join(products_dir, basename(in_dir)+'-canopy.tif')
+    #remove .tif of the laz_fp path and add -align to the end
+    align_path = laz_fp.replace('.laz', '-align')
 
-    snow_tif = clip_align(laz_fp, buff_shp=buff_shp, final_tif= snow_final_tif,  asp_dir = asp_dir, dem_is_geoid = False)
-    canopy_tif = clip_align(laz_fp, buff_shp=buff_shp, final_tif= canopy_final_tif,  asp_dir = asp_dir, dem_is_geoid = False)
+    #set asp_dir
+    asp_dir = abspath(asp_dir)
+    if basename(asp_dir) != 'bin':
+        asp_dir = join(asp_dir, 'bin')
 
-    return snow_tif, canopy_tif
+    align_tif = clip_align(laz_fp, buff_shp=buff_shp, align_path= align_path,  asp_dir = asp_dir, dem_is_geoid = False)
+
+    return align_tif
 
 
 
