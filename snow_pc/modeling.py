@@ -79,7 +79,9 @@ def terrain_models(laz_fp, outlas = '', outtif = '', user_dem = '', dem_low = 20
             },
             {
                 "type": "writers.las",
-                "filename": outlas
+                "filename": outlas,
+                "major_version": 1,
+                "minor_version": 4
             },
             {
                 "type": "writers.gdal",
@@ -157,7 +159,9 @@ def surface_models(laz_fp, outlas = '', outtif = '', user_dem = '', dem_low = 20
             },
             {
                 "type": "writers.las",
-                "filename": outlas
+                "filename": outlas,
+                "major_version": 1,
+                "minor_version": 4
             },
             {
                 "type": "writers.gdal",
