@@ -2,18 +2,19 @@ import os
 from os.path import dirname, join
 import json
 import subprocess
+import shutil
 from snow_pc.common import download_dem, make_dirs
 
 
 #combine the filters into a single function
-def terrain_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, dem_high = 50, mean_k = 20, multiplier = 3):
+def terrain_models(laz_fp, outlas = '', outtif = '', user_dem = '', dem_low = 20, dem_high = 50, mean_k = 20, multiplier = 3):
     """Use filters.dem, filters.mongo, filters.elm, filters.outlier, filters.smrf, and filters.range to filter the point cloud for terrain models.
 
     Args:
         laz_fp (_type_): Filepath to the point cloud file.
         outlas (str, optional): Filepath to save the output las file. Defaults to ''.
         outtif (str, optional): Filepath to save the output tif file. Defaults to ''.
-        dem_fp (str, optional): Filepath to the dem file. Defaults to ''.
+        user_dem (str, optional): Filepath to the dem file. Defaults to ''.
         dem_low (int, optional): _description_. Defaults to 20.
         dem_high (int, optional): _description_. Defaults to 50.
         mean_k (int, optional): _description_. Defaults to 20.
@@ -32,9 +33,14 @@ def terrain_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, 
     if outtif == '':
         outtif = "dtm.tif"
 
-    #download dem using download_dem() if dem_fp is not provided
-    if dem_fp == '':
-        dem_fp, crs, project = download_dem(laz_fp)
+    #set dem_fp
+    dem_fp = join(in_dir, 'dem.tif')
+    
+    #download dem using download_dem() if user_dem is not provided
+    if user_dem == '':
+        dem_fp, crs, project = download_dem(laz_fp, dem_fp= dem_fp)
+    else:
+        shutil.copy(user_dem, dem_fp) #if user_dem is provided, copy the user_dem to dem_fp
 
     #create a json pipeline for pdal
     json_pipeline = {
@@ -99,14 +105,14 @@ def terrain_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, 
 
     return outlas, outtif
 
-def surface_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, dem_high = 50, mean_k = 20, multiplier = 3):
+def surface_models(laz_fp, outlas = '', outtif = '', user_dem = '', dem_low = 20, dem_high = 50, mean_k = 20, multiplier = 3):
     """Use filters.dem, filters.mongo, filters.elm, filters.outlier, filters.smrf, and filters.range to filter the point cloud for surface models.
 
     Args:
         laz_fp (_type_): _description_
         outlas (str, optional): _description_. Defaults to ''.
         outtif (str, optional): _description_. Defaults to ''.
-        dem_fp (str, optional): _description_. Defaults to ''.
+        user_dem (str, optional): _description_. Defaults to ''.
         dem_low (int, optional): _description_. Defaults to 20.
         dem_high (int, optional): _description_. Defaults to 50.
         mean_k (int, optional): _description_. Defaults to 20.
@@ -125,9 +131,14 @@ def surface_models(laz_fp, outlas = '', outtif = '', dem_fp = '', dem_low = 20, 
     if outtif == '':
         outtif = "dsm.tif"
 
-    #download dem using download_dem() if dem_fp is not provided
-    if dem_fp == '':
-        dem_fp, crs, project = download_dem(laz_fp)  
+    #set dem_fp
+    dem_fp = join(in_dir, 'dem.tif')
+    
+    #download dem using download_dem() if user_dem is not provided
+    if user_dem == '':
+        dem_fp, crs, project = download_dem(laz_fp, dem_fp= dem_fp)
+    else:
+        shutil.copy(user_dem, dem_fp) #if user_dem is provided, copy the user_dem to dem_fp 
 
     #create a json pipeline for pdal
     json_pipeline = {

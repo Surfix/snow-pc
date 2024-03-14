@@ -2,6 +2,7 @@ import os
 from os.path import dirname, join
 import json
 import subprocess
+import shutil
 from snow_pc.common import download_dem, make_dirs
 
 def return_filtering(laz_fp, out_fp = ''):
@@ -53,25 +54,31 @@ def return_filtering(laz_fp, out_fp = ''):
 
     return out_fp
 
-def dem_filtering(laz_fp, dem_fp = '', dem_low = 20, dem_high = 50, out_fp = ''):
+def dem_filtering(laz_fp, user_dem = '', dem_low = 20, dem_high = 50, out_fp = ''):
     """Use filters.dem to filter the point cloud to the DEM. 
 
     Args:
         laz_fp (_type_): Filepath to the point cloud file.
-        dem_fp (str, optional): Filepath to the DEM file. Defaults to ''.
+        user_dem (str, optional): Filepath to the DEM file. Defaults to ''.
         dem_low (int, optional): Lower limit of the DEM. Defaults to 20.
         dem_high (int, optional): Upper limit of the DEM. Defaults to 50.
 
     Returns:
         _type_: Filepath to the filtered point cloud file.
     """
-    #download dem using download_dem() if dem_fp is not provided
-    if dem_fp == '':
-        dem_fp, crs, project = download_dem(laz_fp)
 
     #set the working directory
     in_dir = os.path.dirname(laz_fp)
     os.chdir(in_dir)
+
+    #set dem_fp
+    dem_fp = join(in_dir, 'dem.tif')
+    
+    #download dem using download_dem() if user_dem is not provided
+    if user_dem == '':
+        dem_fp, crs, project = download_dem(laz_fp, dem_fp= dem_fp)
+    else:
+        shutil.copy(user_dem, dem_fp) #if user_dem is provided, copy the user_dem to dem_fp
 
     #create a filepath for the output las file
     if out_fp == '':

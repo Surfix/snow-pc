@@ -8,11 +8,11 @@ from shapely.ops import transform
 from rasterio.enums import Resampling
 
 
-def download_dem(las_fp, dem_fp = 'dem.tif', cache_fp ='./cache/aiohttp_cache.sqlite'):
+def download_dem(laz_fp, dem_fp, cache_fp ='./cache/aiohttp_cache.sqlite'):
     """Download DEM within the bounds of the las file.
 
     Args:
-        las_fp (_type_): Path to the las file.
+        laz_fp (_type_): Path to the las file.
         dem_fp (str, optional): Filename for the downloaded dem. Defaults to 'dem.tif'.
         cache_fp (str, optional): Cache filepath. Defaults to './cache/aiohttp_cache.sqlite'.
 
@@ -24,7 +24,7 @@ def download_dem(las_fp, dem_fp = 'dem.tif', cache_fp ='./cache/aiohttp_cache.sq
     os.chdir(in_dir)
     
     # read crs of las file
-    with laspy.open(las_fp) as las:
+    with laspy.open(laz_fp) as las:
         hdr = las.header
         crs = hdr.parse_crs()
     # log.debug(f"CRS used is {crs}")
