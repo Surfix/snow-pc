@@ -45,7 +45,7 @@ def pc2uncorrectedDEM(in_dir, dem_fp = ''):
     dtm_laz, dtm_tif = terrain_models(unfiltered_laz, dem_fp = dem_fp)
 
     #create uncorrected DSM
-    dsm_laz, dtm_tif = surface_models(unfiltered_laz, dem_fp = dem_fp)
+    dsm_laz, dsm_tif = surface_models(unfiltered_laz, dem_fp = dem_fp)
 
     return dtm_laz, dtm_tif, dsm_laz, dsm_tif
 
