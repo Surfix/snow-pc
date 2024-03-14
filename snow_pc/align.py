@@ -4,7 +4,7 @@ import subprocess
 import geopandas as gpd
 from os.path import join, dirname, exists
 
-def clip_pc(laz_fp, align_shp, buffer_width = 3):
+def clip_pc(laz_fp, align_shp = 'transform_area/hwy_21/hwy21_utm_edit_v3.shp', buffer_width = 3):
     """Clip the point cloud to a shapefile.
 
     Args:
