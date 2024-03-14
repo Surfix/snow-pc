@@ -23,7 +23,7 @@ def clip_pc(laz_fp, align_shp, buffer_width = 3):
     #create a buffer around the shapefile to clip the point cloud
     gdf = gpd.read_file(align_shp)
     gdf['geometry'] = gdf.geometry.buffer(buffer_width / 2) #The buffer_width is the entire width. So, must divide by 2 here to get the right distance from centerline.
-    gdf['CLS'] = 42 # Create a new attribute to be used for PDAL clip/overlay
+    gdf['CLS'] = 22 # Create a new attribute to be used for PDAL clip/overlay
     buff_shp = join(in_dir, 'buffered_area.shp')
     gdf.to_file(buff_shp)
 
@@ -44,7 +44,7 @@ def clip_pc(laz_fp, align_shp, buffer_width = 3):
             },
             {
                 "type":"filters.range",
-                "limits":"Classification[42:42]"
+                "limits":"Classification[22:22]"
             },
             clipped_pc
         ]
