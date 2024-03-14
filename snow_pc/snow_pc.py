@@ -26,12 +26,12 @@ from snow_pc.modeling import terrain_models, surface_models
 
 
 
-def pc2uncorrectedDEM(in_dir, dem_fp = ''):
+def pc2uncorrectedDEM(in_dir, user_dem = ''):
     """Converts laz files to uncorrected DEM.
 
     Args:
         in_dir (str): Path to the directory containing the point cloud files.
-        dem_fp (str, optional): Path to the DEM file. Defaults to ''.
+        user_dem (str, optional): Path to the DEM file. Defaults to ''.
 
     Returns:
     outtif (str): filepath to output DTM tiff
@@ -42,21 +42,21 @@ def pc2uncorrectedDEM(in_dir, dem_fp = ''):
     unfiltered_laz = prepare_pc(in_dir)
 
     #create uncorrected DTM
-    dtm_laz, dtm_tif = terrain_models(unfiltered_laz, dem_fp = dem_fp)
+    dtm_laz, dtm_tif = terrain_models(unfiltered_laz, user_dem = user_dem)
 
     #create uncorrected DSM
-    dsm_laz, dsm_tif = surface_models(unfiltered_laz, dem_fp = dem_fp)
+    dsm_laz, dsm_tif = surface_models(unfiltered_laz, user_dem = user_dem)
 
     return dtm_laz, dtm_tif, dsm_laz, dsm_tif
 
 
-def pc2correctedDEM(in_dir, align_shp, dem_fp = ''):
+def pc2correctedDEM(in_dir, align_shp, user_dem = ''):
     """Converts laz files to corrected DEM.
 
     Args:
         in_dir (str): Path to the directory containing the point cloud files.
         align_shp (str): Path to the shapefile to align the point cloud to.
-        dem_fp (str, optional): Path to the DEM file. Defaults to ''.
+        user_dem (str, optional): Path to the DEM file. Defaults to ''.
 
     Returns:
     outtif (str): filepath to output DTM tiff
@@ -65,10 +65,10 @@ def pc2correctedDEM(in_dir, align_shp, dem_fp = ''):
 
 
     # create uncorrected DEM
-    outlas, outtif, canopy_laz, canopy_tif = pc2uncorrectedDEM(in_dir, dem_fp = dem_fp)
+    outlas, outtif, canopy_laz, canopy_tif = pc2uncorrectedDEM(in_dir, user_dem = user_dem)
 
     # # align the point cloud
-    # snow_tif, canopy_tif = dem_align(laz_fp, align_shp, dem_fp, debug)
+    # snow_tif, canopy_tif = dem_align(laz_fp, align_shp, user_dem, debug)
 
     # return snow_tif, canopy_tif
 

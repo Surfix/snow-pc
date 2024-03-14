@@ -4,7 +4,7 @@ import subprocess
 import geopandas as gpd
 from os.path import join, dirname, exists
 
-def clip_pc(laz_fp, align_shp = 'transform_area/hwy_21/hwy21_utm_edit_v3.shp', buffer_width = 3):
+def clip_pc(laz_fp, align_shp, buffer_width = 3):
     """Clip the point cloud to a shapefile.
 
     Args:
@@ -16,12 +16,12 @@ def clip_pc(laz_fp, align_shp = 'transform_area/hwy_21/hwy21_utm_edit_v3.shp', b
     Raises:
         Exception: _description_
     """
-    gdf = gpd.read_file(align_shp)
     #set the working directory
     in_dir = os.path.dirname(laz_fp)
     os.chdir(in_dir)
 
     #create a buffer around the shapefile to clip the point cloud
+    gdf = gpd.read_file(align_shp)
     gdf['geometry'] = gdf.geometry.buffer(buffer_width / 2) #The buffer_width is the entire width. So, must divide by 2 here to get the right distance from centerline.
     gdf['CLS'] = 42 # Create a new attribute to be used for PDAL clip/overlay
     buff_shp = join(in_dir, 'buffered_area.shp')
