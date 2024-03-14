@@ -1,0 +1,10 @@
+name: myenv
+channels:
+  - conda-forge
+dependencies:
+  - pdal
+  - pip
+  - pip:
+    - -r file:requirements.txt
+    - -r file:requirements_dev.txt
+    - -r file:requirements_docs.txt
