@@ -1,20 +1,20 @@
 """Main module."""
 
-import os
-from os.path import abspath, basename, dirname, exists, isdir, join, expanduser
-import ipyleaflet
-import shutil
-import json
-import logging
-from glob import glob
-import pyproj
-import laspy
-import py3dep
-import subprocess
-from shapely.geometry import box
-from shapely.ops import transform
-from rasterio.enums import Resampling
-import geopandas as gpd
+# import os
+# from os.path import abspath, basename, dirname, exists, isdir, join, expanduser
+# import ipyleaflet
+# import shutil
+# import json
+# import logging
+# from glob import glob
+# import pyproj
+# import laspy
+# import py3dep
+# import subprocess
+# from shapely.geometry import box
+# from shapely.ops import transform
+# from rasterio.enums import Resampling
+# import geopandas as gpd
 
 
 # from snow_pc.common import download_dem, make_dirs
@@ -23,6 +23,7 @@ import geopandas as gpd
 
 from snow_pc.prepare import prepare_pc
 from snow_pc.modeling import terrain_models, surface_models
+from snow_pc.align import laz_align
 
 
 
@@ -50,7 +51,7 @@ def pc2uncorrectedDEM(in_dir, user_dem = ''):
     return dtm_laz, dtm_tif, dsm_laz, dsm_tif
 
 
-def pc2correctedDEM(in_dir, align_shp, user_dem = ''):
+def pc2correctedDEM(in_dir, align_shp, asp_dir, user_dem = '', buffer_width= 3 ):
     """Converts laz files to corrected DEM.
 
     Args:
@@ -65,13 +66,14 @@ def pc2correctedDEM(in_dir, align_shp, user_dem = ''):
 
 
     # create uncorrected DEM
-    outlas, outtif, canopy_laz, canopy_tif = pc2uncorrectedDEM(in_dir, user_dem = user_dem)
+    dtm_laz, dtm_tif, dsm_laz, dsm_tif = pc2uncorrectedDEM(in_dir, user_dem = user_dem)
 
-    # # align the point cloud
-    # snow_tif, canopy_tif = dem_align(laz_fp, align_shp, user_dem, debug)
 
-    # return snow_tif, canopy_tif
+    # align the point cloud
+    dtm_align_tif = laz_align(dtm_laz, align_shp = align_shp, asp_dir= asp_dir, buffer_width= buffer_width)
+    dsm_align_tif = laz_align(dsm_laz, align_shp = align_shp, asp_dir= asp_dir, buffer_width= buffer_width)
 
+    # return dtm_align_tif, dsm_align_tif
 
 # class Map(ipyleaflet.Map):
 #     """Custom map class that inherits from ipyleaflet.Map.

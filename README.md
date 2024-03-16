@@ -106,7 +106,7 @@ ground_segmentation('outlier_filtered.laz')
 
 
 ### Align module
-- `clip_pc(in_laz, buff_shp)` : Clip the point cloud to a shapefile. [To do]
+- `clip_pc(in_laz, buff_shp)` : Clip the point cloud to a shapefile.
 - `align(in_laz, dem)`: Align the point clouds to a reference [To do]
 
 ### Product module

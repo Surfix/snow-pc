@@ -25,13 +25,13 @@ def terrain_models(laz_fp, outlas = '', outtif = '', user_dem = '', dem_low = 20
     """
     #set the working directory
     in_dir = os.path.dirname(laz_fp)
-    os.chdir(in_dir)
+    # os.chdir(in_dir)
 
     #create a filepath for the output las and tif file
     if outlas == '':
-        outlas = "dtm.laz"
+        outlas = join(in_dir, 'dtm.laz')
     if outtif == '':
-        outtif = "dtm.tif"
+        outtif = join(in_dir, 'dtm.tif')
 
     #set dem_fp
     dem_fp = join(in_dir, 'dem.tif')
@@ -125,13 +125,13 @@ def surface_models(laz_fp, outlas = '', outtif = '', user_dem = '', dem_low = 20
     """
     #set the working directory
     in_dir = os.path.dirname(laz_fp)
-    os.chdir(in_dir)
+    # os.chdir(in_dir)
 
     #create a filepath for the output las and tif file
     if outlas == '':
-        outlas = "dsm.laz"
+        outlas = join(in_dir, 'dsm.laz')
     if outtif == '':
-        outtif = "dsm.tif"
+        outtif = join(in_dir, 'dsm.tif')
 
     #set dem_fp
     dem_fp = join(in_dir, 'dem.tif')
