@@ -125,7 +125,7 @@ def snowdepth_val(lid_path, csv_path, snowdepth_col, lat_col, lon_col, csv_EPSG=
         gdf_utm[snowdepth_col] = gdf_utm[snowdepth_col] / 100
     if lid_unit == "cm":
         gdf_utm["lidar"] = gdf_utm["lidar"]/100
-    #rename the colums
+    #rename the columns
     gdf_utm.rename(columns={
                        snowdepth_col: 'Probed Snow Depth (m)', 'lidar': 'LiDAR Snow Depth (m)'}, inplace=True)
     #add error column
