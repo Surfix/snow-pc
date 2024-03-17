@@ -8,6 +8,7 @@ docopt
 matplotlib
 geopandas
 rasterio
+rasterstats
 xarray
 pandas
 laspy
