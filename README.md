@@ -34,16 +34,17 @@ pip install git+https://github.com/Surfix/snow-pc
 
 
 ### Generating Uncorrected and Corrected DTM and DSM
-snow_pc.py module features the pc2uncorrectedDEM function which takes a user directory contain point cloud files, performs the necessary preparation (remove white space, covers las to laz and mosaic) and generate DTM and DSM files (laz and tif). DEM is required to perform dem_filtering so pc2uncorrectedDEM takes the path to a dem as an optional argument. If this argument is not defined, the dem DEM within the bounds of the point cloud file will be automatically download from Py3DEP. 
+snow_pc.py module features the pc2uncorrectedDEM function which takes a user directory contain point cloud files, performs the necessary preparation (remove white space, covers las to laz and mosaic) and generate DTM and DSM files (laz and tif). DEM is required to perform dem_filtering so pc2uncorrectedDEM takes the path to a dem as an optional argument. If this argument is not defined, the DEM within the bounds of the point cloud file will be automatically download from Py3DEP. 
 
 ```bash
 from snow_pc import pc2uncorrectedDEM
-dtm_laz, dtm_tif, dsm_laz, dsm_tif = pc2uncorrectedDEM(in_dir, dem_fp = 'dem.tif')
+dtm_laz, dtm_tif, dsm_laz, dsm_tif = pc2uncorrectedDEM(in_dir)
 ```
 
 There is also the pc2correctedDEM function which in additional to generating the DTM and DSM rasters, co-register these rasters to a reference object. {coming soon}
 ```bash
 from snow_pc import pc2correctedDEM
+pc2correctedDEM(in_dir, align_shp, asp_dir)
 
 ```
 
@@ -51,6 +52,7 @@ For snow application, a more comprehensive function is the pc2snow which further
 
 ```bash
 from snow_pc import pc2snow
+pc2snow(in_dir, align_shp, asp_dir)
 ```
 
 The main module builds on other modules in snow_pc including the common, prepare, modeling, align and product module.    
@@ -77,7 +79,7 @@ prepare_pc('project_dir')
 ### Modeling module
 This module provides `terrain_models` and `surface_models` function for generating dtm and dsm models.
 - `terrain_models(laz_fp)` : Use filters.dem, filters.mongo, filters.elm, filters.outlier, filters.smrf, and filters.range to filter the point cloud for terrain models 
-- `surface_models(laz_fp)` : Use filters.dem, filters.mongo and filters.range to filter the point point cloud for surface points 
+- `surface_models(laz_fp)` : Use filters.dem, filters.mongo and filters.range to filter the point cloud for surface points 
 
  ```bash
 from snow_pc.modeling import terrain_models, surface_models
@@ -109,8 +111,6 @@ ground_segmentation('outlier_filtered.laz')
 - `clip_pc(in_laz, buff_shp)` : Clip the point cloud to a shapefile.
 - `align(in_laz, dem)`: Align the point clouds to a reference [To do]
 
-### Product module
-- `generate_product(dtm_file, dsm_file)`: Derive snow depth and canopy height from DTM and DSM files [To do]
 
 ![view lidar](filtering_result.png)
 *Intermittent results of DTM pipeline workflow for a track. The original point cloud is shown in top left. Point clouds after removal of invalid return is shown in top right. Bottom left is applying dem filter while the bottom right is the ground segmented points. Dem filter effectively removes noise in the point cloud such that no point is left for elm and outlier filter.*
@@ -128,6 +128,6 @@ leafmap.view_lidar('unfiltered_merge.laz', cmap="terrain")
 - [x] Add ground segmentation function to the filtering module
 - [x] Refactor the modeling module 
 - [x] Complete surface segmentation function to the filtering module
-- [] pc2correctedDEM and pc2snow
+- [x] pc2correctedDEM and pc2snow
 - [] Add a function for combining LiDAR and photogrammetry point clouds
 

@@ -1,26 +1,10 @@
 """Main module."""
 
-# import os
-# from os.path import abspath, basename, dirname, exists, isdir, join, expanduser
-# import ipyleaflet
-# import shutil
-# import json
-# import logging
-# from glob import glob
-# import pyproj
-# import laspy
-# import py3dep
-# import subprocess
-# from shapely.geometry import box
-# from shapely.ops import transform
-# from rasterio.enums import Resampling
-# import geopandas as gpd
+import os
+from os.path import join, basename
+import rioxarray as rio
 
-
-# from snow_pc.common import download_dem, make_dirs
-# from snow_pc.prepare import replace_white_spaces, las2laz, merge_laz_files, prepare_pc
-# from snow_pc.modeling import terrain_models, surface_models
-
+#local imports
 from snow_pc.prepare import prepare_pc
 from snow_pc.modeling import terrain_models, surface_models
 from snow_pc.align import laz_align
@@ -73,7 +57,43 @@ def pc2correctedDEM(in_dir, align_shp, asp_dir, user_dem = '', buffer_width= 3 )
     dtm_align_tif = laz_align(dtm_laz, align_shp = align_shp, asp_dir= asp_dir, buffer_width= buffer_width)
     dsm_align_tif = laz_align(dsm_laz, align_shp = align_shp, asp_dir= asp_dir, buffer_width= buffer_width)
 
-    # return dtm_align_tif, dsm_align_tif
+    return dtm_align_tif, dsm_align_tif
+
+def pc2snow(in_dir, align_shp, asp_dir, user_dem = '', buffer_width= 3):
+    """Converts laz files to snow depth and canopy height.
+
+    Args:
+        in_dir (str): Path to the directory containing the point cloud files.
+        align_shp (str): Path to the shapefile to align the point cloud to.
+        user_dem (str, optional): Path to the DEM file. Defaults to ''.
+
+    Returns:
+    outtif (str): filepath to output DTM tiff
+    outlas (str): filepath to output DTM laz file
+    """
+
+    # create corrected DEM
+    dtm_align_tif, dsm_align_tif = pc2correctedDEM(in_dir, align_shp, asp_dir, user_dem = user_dem, buffer_width= buffer_width)
+    
+    #set dem_fp
+    in_dir = os.path.dirname(dtm_align_tif)
+    ref_dem_path = join(in_dir, 'dem.tif')
+
+    #create snow depth
+    snow_depth_path = join(in_dir, f'{basename(in_dir)}-snowdepth.tif')
+    snowoff = rio.open_rasterio(ref_dem_path, masked=True)
+    snowon = rio.open_rasterio(dtm_align_tif, masked=True) 
+    snowon_matched = snowon.rio.reproject_match(snowoff)
+    snowdepth = snowon_matched - snowoff
+    snowdepth.rio.to_raster(snow_depth_path)
+
+    #create canopy height
+    canopy_height_path = join(in_dir, f'{basename(in_dir)}-canopyheight.tif')
+    canopy_height = rio.open_rasterio(dsm_align_tif, masked=True) - snowoff
+    canopy_height.rio.to_raster(canopy_height_path)
+
+    return snow_depth_path, canopy_height_path
+
 
 # class Map(ipyleaflet.Map):
 #     """Custom map class that inherits from ipyleaflet.Map.
