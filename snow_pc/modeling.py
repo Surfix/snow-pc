@@ -7,7 +7,7 @@ from snow_pc.common import download_dem, make_dirs
 
 
 #combine the filters into a single function
-def terrain_models(laz_fp, outlas = '', outtif = '', user_dem = '', dem_low = 20, dem_high = 50, mean_k = 20, multiplier = 3):
+def terrain_models(laz_fp, outlas = '', outtif = '', user_dem = '', dem_low = 20, dem_high = 50, mean_k = 20, multiplier = 3, lidar_pc = 'yes'):
     """Use filters.dem, filters.mongo, filters.elm, filters.outlier, filters.smrf, and filters.range to filter the point cloud for terrain models.
 
     Args:
@@ -42,55 +42,100 @@ def terrain_models(laz_fp, outlas = '', outtif = '', user_dem = '', dem_low = 20
     else:
         shutil.copy(user_dem, dem_fp) #if user_dem is provided, copy the user_dem to dem_fp
 
-    #create a json pipeline for pdal
-    json_pipeline = {
-        "pipeline": [
-            {
-                "type": "readers.las",
-                "filename": laz_fp
-            },
-            {
-                "type": "filters.dem",
-                "raster": dem_fp,
-                "limits": f"Z[{dem_low}:{dem_high}]"
-            },
-            {
-                "type": "filters.mongo",\
-                "expression": {"$and": [\
-                {"ReturnNumber": {"$gt": 0}},\
-                {"NumberOfReturns": {"$gt": 0}} ] }
-            },
-            {
-                "type": "filters.elm"
-            },
-            {
-                "type": "filters.outlier",\
-                "method": "statistical",\
-                "mean_k": mean_k,\
-                "multiplier": multiplier
-            },
-            {
-                "type": "filters.smrf",\
-                "ignore": "Classification[7:7], NumberOfReturns[0:0], ReturnNumber[0:0]"
-            },
-            {
-                "type": "filters.range",
-                "limits": "Classification[2:2]"
-            },
-            {
-                "type": "writers.las",
-                "filename": outlas,
-                "major_version": 1,
-                "minor_version": 4
-            },
-            {
-                "type": "writers.gdal",
-                "filename": outtif,
-                "resolution": 1.0,
-                "output_type": "idw"
-            }
-        ]
-    }
+    if lidar_pc.lower() == 'yes':
+        #create a json pipeline for pdal
+        json_pipeline = {
+            "pipeline": [
+                {
+                    "type": "readers.las",
+                    "filename": laz_fp
+                },
+                {
+                    "type": "filters.dem",
+                    "raster": dem_fp,
+                    "limits": f"Z[{dem_low}:{dem_high}]"
+                },
+                {
+                    "type": "filters.mongo",\
+                    "expression": {"$and": [\
+                    {"ReturnNumber": {"$gt": 0}},\
+                    {"NumberOfReturns": {"$gt": 0}} ] }
+                },
+                {
+                    "type": "filters.elm"
+                },
+                {
+                    "type": "filters.outlier",\
+                    "method": "statistical",\
+                    "mean_k": mean_k,\
+                    "multiplier": multiplier
+                },
+                {
+                    "type": "filters.smrf",\
+                    "ignore": "Classification[7:7], NumberOfReturns[0:0], ReturnNumber[0:0]"
+                },
+                {
+                    "type": "filters.range",
+                    "limits": "Classification[2:2]"
+                },
+                {
+                    "type": "writers.las",
+                    "filename": outlas,
+                    "major_version": 1,
+                    "minor_version": 4
+                },
+                {
+                    "type": "writers.gdal",
+                    "filename": outtif,
+                    "resolution": 1.0,
+                    "output_type": "idw"
+                }
+            ]
+        }
+    else: 
+        #create a json pipeline for pdal
+        json_pipeline = {
+            "pipeline": [
+                {
+                    "type": "readers.las",
+                    "filename": laz_fp
+                },
+                {
+                    "type": "filters.dem",
+                    "raster": dem_fp,
+                    "limits": f"Z[{dem_low}:{dem_high}]"
+                },
+                {
+                    "type": "filters.elm"
+                },
+                {
+                    "type": "filters.outlier",\
+                    "method": "statistical",\
+                    "mean_k": mean_k,\
+                    "multiplier": multiplier
+                },
+                # {
+                #     "type": "filters.smrf",\
+                #     "ignore": "Classification[7:7], NumberOfReturns[0:0], ReturnNumber[0:0]"
+                # },
+                {
+                    "type": "filters.range",
+                    "limits": "Classification[2:2]"
+                },
+                {
+                    "type": "writers.las",
+                    "filename": outlas,
+                    "major_version": 1,
+                    "minor_version": 4
+                },
+                {
+                    "type": "writers.gdal",
+                    "filename": outtif,
+                    "resolution": 1.0,
+                    "output_type": "idw"
+                }
+            ]
+        }
 
     #create a directory to save the json pipeline
     json_dir =  join(in_dir, 'jsons')
@@ -107,7 +152,7 @@ def terrain_models(laz_fp, outlas = '', outtif = '', user_dem = '', dem_low = 20
 
     return outlas, outtif
 
-def surface_models(laz_fp, outlas = '', outtif = '', user_dem = '', dem_low = 20, dem_high = 50, mean_k = 20, multiplier = 3):
+def surface_models(laz_fp, outlas = '', outtif = '', user_dem = '', dem_low = 20, dem_high = 50, mean_k = 20, multiplier = 3, lidar_pc = 'yes'):
     """Use filters.dem, filters.mongo, filters.elm, filters.outlier, filters.smrf, and filters.range to filter the point cloud for surface models.
 
     Args:
@@ -142,35 +187,90 @@ def surface_models(laz_fp, outlas = '', outtif = '', user_dem = '', dem_low = 20
     else:
         shutil.copy(user_dem, dem_fp) #if user_dem is provided, copy the user_dem to dem_fp 
 
-    #create a json pipeline for pdal
-    json_pipeline = {
-        "pipeline": [
-            {
-                "type": "readers.las",
-                "filename": laz_fp
-            },
-            {
-                "type": "filters.dem",
-                "raster": dem_fp,
-                "limits": f"Z[{dem_low}:{dem_high}]"
-            },
-            {"type": "filters.range",\
-            "limits":"returnnumber[1:1]"
-            },
-            {
-                "type": "writers.las",
-                "filename": outlas,
-                "major_version": 1,
-                "minor_version": 4
-            },
-            {
-                "type": "writers.gdal",
-                "filename": outtif,
-                "resolution": 1.0,
-                "output_type": "idw"
-            }
-        ]
-    }
+    if lidar_pc.lower() == 'yes':
+        #create a json pipeline for pdal
+        json_pipeline = {
+            "pipeline": [
+                {
+                    "type": "readers.las",
+                    "filename": laz_fp
+                },
+                {
+                    "type": "filters.dem",
+                    "raster": dem_fp,
+                    "limits": f"Z[{dem_low}:{dem_high}]"
+                },
+                {
+                    "type": "filters.mongo",\
+                    "expression": {"$and": [\
+                    {"ReturnNumber": {"$gt": 0}},\
+                    {"NumberOfReturns": {"$gt": 0}} ] }
+                },
+                {
+                    "type": "filters.elm"
+                },
+                {
+                    "type": "filters.outlier",\
+                    "method": "statistical",\
+                    "mean_k": mean_k,\
+                    "multiplier": multiplier
+                },
+                {"type": "filters.range",\
+                "limits":"returnnumber[1:1]"
+                },
+                {
+                    "type": "writers.las",
+                    "filename": outlas,
+                    "major_version": 1,
+                    "minor_version": 4
+                },
+                {
+                    "type": "writers.gdal",
+                    "filename": outtif,
+                    "resolution": 1.0,
+                    "output_type": "idw"
+                }
+            ]
+        }
+    else:
+        #create a json pipeline for pdal
+        json_pipeline = {
+            "pipeline": [
+                {
+                    "type": "readers.las",
+                    "filename": laz_fp
+                },
+                {
+                    "type": "filters.dem",
+                    "raster": dem_fp,
+                    "limits": f"Z[{dem_low}:{dem_high}]"
+                },
+                {
+                    "type": "filters.elm"
+                },
+                {
+                    "type": "filters.outlier",\
+                    "method": "statistical",\
+                    "mean_k": mean_k,\
+                    "multiplier": multiplier
+                },
+                {"type": "filters.range",\
+                "limits":"Classification[2:6]"
+                },
+                {
+                    "type": "writers.las",
+                    "filename": outlas,
+                    "major_version": 1,
+                    "minor_version": 4
+                },
+                {
+                    "type": "writers.gdal",
+                    "filename": outtif,
+                    "resolution": 1.0,
+                    "output_type": "idw"
+                }
+            ]
+        }
 
     #create a directory to save the json pipeline
     json_dir =  join(in_dir, 'jsons')

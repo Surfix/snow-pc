@@ -11,7 +11,7 @@ from snow_pc.align import laz_align
 
 
 
-def pc2uncorrectedDEM(in_dir, user_dem = ''):
+def pc2uncorrectedDEM(in_dir, outlas = '', outtif = '', user_dem = '', dem_low = 20, dem_high = 50, mean_k = 20, multiplier = 3, lidar_pc = 'yes'):
     """Converts laz files to uncorrected DEM.
 
     Args:
@@ -27,10 +27,10 @@ def pc2uncorrectedDEM(in_dir, user_dem = ''):
     unfiltered_laz = prepare_pc(in_dir)
 
     #create uncorrected DTM
-    dtm_laz, dtm_tif = terrain_models(unfiltered_laz, user_dem = user_dem)
+    dtm_laz, dtm_tif = terrain_models(unfiltered_laz, outtif= outtif, outlas= outlas, user_dem = user_dem, dem_low = dem_low, dem_high = dem_high, mean_k = mean_k, multiplier = multiplier, lidar_pc = lidar_pc)
 
     #create uncorrected DSM
-    dsm_laz, dsm_tif = surface_models(unfiltered_laz, user_dem = user_dem)
+    dsm_laz, dsm_tif = surface_models(unfiltered_laz, outtif= outtif, outlas= outlas, user_dem = user_dem, dem_low = dem_low, dem_high = dem_high, mean_k = mean_k, multiplier = multiplier, lidar_pc = lidar_pc)
 
     return dtm_laz, dtm_tif, dsm_laz, dsm_tif
 
