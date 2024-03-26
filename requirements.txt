@@ -6,6 +6,7 @@ py3dep
 shapely
 docopt
 matplotlib
+seaborn
 geopandas
 rasterio
 rasterstats

@@ -8,9 +8,15 @@ from shapely.ops import transform
 from rasterio.enums import Resampling
 import rioxarray as rxr
 from rasterstats import point_query, zonal_stats
+import numpy as np
 import pandas as pd
 import geopandas as gpd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import mean_squared_error
 from rasterio.crs import CRS
+import json
+import subprocess
 
 
 def download_dem(laz_fp, dem_fp, cache_fp ='./cache/aiohttp_cache.sqlite'):
@@ -66,7 +72,7 @@ def make_dirs(in_dir):
     os.makedirs(results_dir, exist_ok= True)
     return results_dir
 
-def snowdepth_val(lid_path, csv_path, snowdepth_col, lat_col, lon_col, csv_EPSG=4326, zone_utmcrs=32611, lid_unit="m", probe_unit="cm", use_buffer = 'no'):
+def snowdepth_val(lid_path, csv_path, snowdepth_col, lat_col, lon_col, road_shp = '', csv_EPSG=4326, zone_utmcrs=32611, lid_unit="m", probe_unit="cm", use_buffer = 'no'):
     """_summary_
 
     Args:
@@ -131,8 +137,12 @@ def snowdepth_val(lid_path, csv_path, snowdepth_col, lat_col, lon_col, csv_EPSG=
     #add error column
     gdf_utm['error (cm)'] = (gdf_utm['Probed Snow Depth (m)'] - gdf_utm['LiDAR Snow Depth (m)']) * 100
 
+    if road_shp == '':
+        road = '/SNOWDATA/IDALS/misc_data_scripts/3mroadBufferClip/3m_road.shp'
+    else:
+        road = road_shp
     #read the road shapefile
-    road = gpd.read_file('/SNOWDATA/IDALS/misc_data_scripts/3mroadBufferClip/3m_road.shp')
+    road = gpd.read_file(road)
     # convert the gdf to crs of the zone
     road = road.to_crs("EPSG:" + str(zone_utmcrs))
     #create a 5m buffer
@@ -147,5 +157,66 @@ def snowdepth_val(lid_path, csv_path, snowdepth_col, lat_col, lon_col, csv_EPSG=
     masked_data = values[0]['mini_raster_array']
     lidar_road = masked_data[~masked_data.mask] 
 
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 6))
+    # Drop missing values
+    df = df.dropna(subset=['Probed Snow Depth (m)', 'LiDAR Snow Depth (m)'])
+
+    # Scatter plot of probed depth vs lidar depth
+    sns.regplot(x='Probed Snow Depth (m)', y='LiDAR Snow Depth (m)', data=df, ax=axs[0], fit_reg=False)
+    probe_min, probe_max = df['Probed Snow Depth (m)'].min(), df['Probed Snow Depth (m)'].max()
+    lidar_min, lidar_max = df['LiDAR Snow Depth (m)'].min(), df['LiDAR Snow Depth (m)'].max()
+    min_val = min(probe_min, lidar_min)
+    max_val = max(probe_max, lidar_max)
+    axs[0].plot([min_val, max_val], [min_val, max_val], linestyle='--', color='black')
+
+
+    # Calculate correlation (r) and RMSE
+    corr = np.corrcoef(df['Probed Snow Depth (m)'], df['LiDAR Snow Depth (m)'])[0, 1]
+    correlation_text = f'r: {corr:.2f}'
+    rmse = np.sqrt(mean_squared_error(df['Probed Snow Depth (m)'], df['LiDAR Snow Depth (m)']))
+    rmse_text = f'RMSE: {rmse:.2f}'
+    mbe = np.mean(df['Probed Snow Depth (m)'] - df['LiDAR Snow Depth (m)'])
+    mbe_text = f'MBE: {mbe:.2f}'
+    mae = np.mean(np.abs(df['Probed Snow Depth (m)'] - df['LiDAR Snow Depth (m)']))
+    mae_text = f'MAE: {mae:.2f}'
+    nmad = 1.4826 * np.median(np.abs(df['Probed Snow Depth (m)'] - df['LiDAR Snow Depth (m)']))
+    nmad_text = f'NMAD: {nmad:.2f}'
+
+    # Add the correlation coefficient and RMSE as text to the upper left corner
+    combined_text = '\n'.join([correlation_text, rmse_text, mbe_text, mae_text, nmad_text])
+    axs[0].text(0.02, 0.98, combined_text, transform=axs[0].transAxes, color='black', bbox=dict(facecolor='white', alpha=0.8), ha='left', va='top')
+
+    # Distribution plot of error
+    sns.histplot(df['error (cm)'], kde=True, ax=axs[1])
+    axs[1].set_xlabel('Error (cm)')
+    axs[1].set_ylabel('Frequency')
+    plt.tight_layout()
+
 
     return gdf_utm, lidar_road
+
+def clip_lidar_with_shapefile(shapefile_path, lidar_input_path, lidar_output_path):
+    # Load the shapefile
+    gdf = gpd.read_file(shapefile_path)
+
+    # Convert the first geometry in the shapefile to WKT format
+    polygon = gdf['geometry'][0].wkt
+
+    # Create a PDAL pipeline to clip the LiDAR file
+    pipeline = {
+        "pipeline": [
+            lidar_input_path,
+            {
+                "type": "filters.crop",
+                "polygon": polygon
+            },
+            lidar_output_path
+        ]
+    }
+
+    # Write the pipeline to a JSON file
+    with open('pipeline.json', 'w') as f:
+        json.dump(pipeline, f)
+
+    # Run the PDAL pipeline
+    subprocess.run(['pdal', 'pipeline', 'pipeline.json'])
