@@ -159,27 +159,27 @@ def snowdepth_val(lid_path, csv_path, snowdepth_col, lat_col, lon_col, road_shp 
 
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 6))
     # Drop missing values
-    df = df.dropna(subset=['Probed Snow Depth (m)', 'LiDAR Snow Depth (m)'])
+    gdf_utm = gdf_utm.dropna(subset=['Probed Snow Depth (m)', 'LiDAR Snow Depth (m)'])
 
     # Scatter plot of probed depth vs lidar depth
-    sns.regplot(x='Probed Snow Depth (m)', y='LiDAR Snow Depth (m)', data=df, ax=axs[0], fit_reg=False)
-    probe_min, probe_max = df['Probed Snow Depth (m)'].min(), df['Probed Snow Depth (m)'].max()
-    lidar_min, lidar_max = df['LiDAR Snow Depth (m)'].min(), df['LiDAR Snow Depth (m)'].max()
+    sns.regplot(x='Probed Snow Depth (m)', y='LiDAR Snow Depth (m)', data=gdf_utm, ax=axs[0], fit_reg=False)
+    probe_min, probe_max = gdf_utm['Probed Snow Depth (m)'].min(), gdf_utm['Probed Snow Depth (m)'].max()
+    lidar_min, lidar_max = gdf_utm['LiDAR Snow Depth (m)'].min(), gdf_utm['LiDAR Snow Depth (m)'].max()
     min_val = min(probe_min, lidar_min)
     max_val = max(probe_max, lidar_max)
     axs[0].plot([min_val, max_val], [min_val, max_val], linestyle='--', color='black')
 
 
     # Calculate correlation (r) and RMSE
-    corr = np.corrcoef(df['Probed Snow Depth (m)'], df['LiDAR Snow Depth (m)'])[0, 1]
+    corr = np.corrcoef(gdf_utm['Probed Snow Depth (m)'], gdf_utm['LiDAR Snow Depth (m)'])[0, 1]
     correlation_text = f'r: {corr:.2f}'
-    rmse = np.sqrt(mean_squared_error(df['Probed Snow Depth (m)'], df['LiDAR Snow Depth (m)']))
+    rmse = np.sqrt(mean_squared_error(gdf_utm['Probed Snow Depth (m)'], gdf_utm['LiDAR Snow Depth (m)']))
     rmse_text = f'RMSE: {rmse:.2f}'
-    mbe = np.mean(df['Probed Snow Depth (m)'] - df['LiDAR Snow Depth (m)'])
+    mbe = np.mean(gdf_utm['Probed Snow Depth (m)'] - gdf_utm['LiDAR Snow Depth (m)'])
     mbe_text = f'MBE: {mbe:.2f}'
-    mae = np.mean(np.abs(df['Probed Snow Depth (m)'] - df['LiDAR Snow Depth (m)']))
+    mae = np.mean(np.abs(gdf_utm['Probed Snow Depth (m)'] - gdf_utm['LiDAR Snow Depth (m)']))
     mae_text = f'MAE: {mae:.2f}'
-    nmad = 1.4826 * np.median(np.abs(df['Probed Snow Depth (m)'] - df['LiDAR Snow Depth (m)']))
+    nmad = 1.4826 * np.median(np.abs(gdf_utm['Probed Snow Depth (m)'] - gdf_utm['LiDAR Snow Depth (m)']))
     nmad_text = f'NMAD: {nmad:.2f}'
 
     # Add the correlation coefficient and RMSE as text to the upper left corner
@@ -187,7 +187,7 @@ def snowdepth_val(lid_path, csv_path, snowdepth_col, lat_col, lon_col, road_shp 
     axs[0].text(0.02, 0.98, combined_text, transform=axs[0].transAxes, color='black', bbox=dict(facecolor='white', alpha=0.8), ha='left', va='top')
 
     # Distribution plot of error
-    sns.histplot(df['error (cm)'], kde=True, ax=axs[1])
+    sns.histplot(gdf_utm['error (cm)'], kde=True, ax=axs[1])
     axs[1].set_xlabel('Error (cm)')
     axs[1].set_ylabel('Frequency')
     plt.tight_layout()

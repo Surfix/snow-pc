@@ -213,7 +213,7 @@ def outlier_filtering(laz_fp, mean_k = 20, multiplier = 3, out_fp = ''):
 
     return out_fp
 
-def ground_segmentation(laz_fp, out_fp = '', out_fp2 = '', lidar_pc = 'yes'):
+def ground_segmentation(laz_fp, out_fp = '', out_fp2 = '', lidar_pc = 'yes', slope = 0.15, window = 18, threshold = 0.5, scalar = 1.25):
     """Use filters.smrf and filters.range to segment ground points.
 
     Args:
@@ -242,7 +242,11 @@ def ground_segmentation(laz_fp, out_fp = '', out_fp2 = '', lidar_pc = 'yes'):
                 },
                 {
                     "type": "filters.smrf",\
-                    "ignore": "Classification[7:7], NumberOfReturns[0:0], ReturnNumber[0:0]"
+                    "ignore": "Classification[7:7], NumberOfReturns[0:0], ReturnNumber[0:0]",\
+                    "scalar": scalar,\
+                    "slope": slope,\
+                    "window": window,\
+                    "threshold": threshold
                 },
                 {
                     "type": "filters.range",

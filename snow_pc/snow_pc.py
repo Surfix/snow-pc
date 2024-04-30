@@ -35,7 +35,7 @@ def pc2uncorrectedDEM(in_dir, outlas = '', outtif = '', user_dem = '', dem_low =
     return dtm_laz, dtm_tif, dsm_laz, dsm_tif
 
 
-def pc2correctedDEM(in_dir, align_shp, asp_dir, user_dem = '', buffer_width= 3 ):
+def pc2correctedDEM(in_dir, align_file, asp_dir, user_dem = ''):
     """Converts laz files to corrected DEM.
 
     Args:
@@ -54,12 +54,12 @@ def pc2correctedDEM(in_dir, align_shp, asp_dir, user_dem = '', buffer_width= 3 )
 
 
     # align the point cloud
-    dtm_align_tif = laz_align(dtm_laz, align_shp = align_shp, asp_dir= asp_dir, buffer_width= buffer_width)
-    dsm_align_tif = laz_align(dsm_laz, align_shp = align_shp, asp_dir= asp_dir, buffer_width= buffer_width)
+    dtm_align_tif = laz_align(dtm_laz, align_file = align_file, asp_dir= asp_dir, user_dem = user_dem)
+    dsm_align_tif = laz_align(dsm_laz, align_file = align_file, asp_dir= asp_dir, user_dem = user_dem)
 
     return dtm_align_tif, dsm_align_tif
 
-def pc2snow(in_dir, align_shp, asp_dir, user_dem = '', buffer_width= 3):
+def pc2snow(in_dir, align_file, asp_dir, user_dem = ''):
     """Converts laz files to snow depth and canopy height.
 
     Args:
@@ -73,7 +73,7 @@ def pc2snow(in_dir, align_shp, asp_dir, user_dem = '', buffer_width= 3):
     """
 
     # create corrected DEM
-    dtm_align_tif, dsm_align_tif = pc2correctedDEM(in_dir, align_shp, asp_dir, user_dem = user_dem, buffer_width= buffer_width)
+    dtm_align_tif, dsm_align_tif = pc2correctedDEM(in_dir, align_file, asp_dir, user_dem = user_dem)
     
     #set dem_fp
     in_dir = os.path.dirname(dtm_align_tif)
